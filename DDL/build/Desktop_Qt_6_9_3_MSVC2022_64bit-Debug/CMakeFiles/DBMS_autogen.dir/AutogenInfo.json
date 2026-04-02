@@ -404,6 +404,24 @@
 			null
 		],
 		[
+			"C:/Users/21495/QTProgram/DBMS/Lexer.h",
+			"MU",
+			"EWIEGA46WW/moc_Lexer.cpp",
+			null
+		],
+		[
+			"C:/Users/21495/QTProgram/DBMS/Parser.h",
+			"MU",
+			"EWIEGA46WW/moc_Parser.cpp",
+			null
+		],
+		[
+			"C:/Users/21495/QTProgram/DBMS/dialog.h",
+			"MU",
+			"EWIEGA46WW/moc_dialog.cpp",
+			null
+		],
+		[
 			"C:/Users/21495/QTProgram/DBMS/mainwindow.h",
 			"MU",
 			"EWIEGA46WW/moc_mainwindow.cpp",
@@ -466,6 +484,9 @@
 	"SOURCES" : 
 	[
 		[ "C:/Users/21495/QTProgram/DBMS/DDL.cpp", "MU", null ],
+		[ "C:/Users/21495/QTProgram/DBMS/Lexer.cpp", "MU", null ],
+		[ "C:/Users/21495/QTProgram/DBMS/Parser.cpp", "MU", null ],
+		[ "C:/Users/21495/QTProgram/DBMS/dialog.cpp", "MU", null ],
 		[ "C:/Users/21495/QTProgram/DBMS/main.cpp", "MU", null ],
 		[ "C:/Users/21495/QTProgram/DBMS/mainwindow.cpp", "MU", null ]
 	],

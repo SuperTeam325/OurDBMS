@@ -38,6 +38,7 @@ public:
     QFrame *line_3;
     QFrame *line_4;
     QPushButton *SubmitSQL;
+    QPushButton *SetPath;
     QWidget *page_3;
     QWidget *page_2;
     QMenuBar *menubar;
@@ -101,6 +102,10 @@ public:
         font2.setPointSize(12);
         font2.setBold(true);
         SubmitSQL->setFont(font2);
+        SetPath = new QPushButton(page);
+        SetPath->setObjectName("SetPath");
+        SetPath->setGeometry(QRect(480, 20, 151, 41));
+        SetPath->setFont(font2);
         stackedWidget->addWidget(page);
         page_3 = new QWidget();
         page_3->setObjectName("page_3");
@@ -133,6 +138,7 @@ public:
         MainWindow->setWindowTitle(QCoreApplication::translate("MainWindow", "MainWindow", nullptr));
         label->setText(QCoreApplication::translate("MainWindow", "SQL\345\214\272", nullptr));
         SubmitSQL->setText(QCoreApplication::translate("MainWindow", "\345\217\221\351\200\201", nullptr));
+        SetPath->setText(QCoreApplication::translate("MainWindow", "\350\256\276\347\275\256\346\225\260\346\215\256\345\272\223\350\267\257\345\276\204", nullptr));
         toolBar->setWindowTitle(QCoreApplication::translate("MainWindow", "toolBar", nullptr));
     } // retranslateUi
 

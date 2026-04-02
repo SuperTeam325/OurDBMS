@@ -58,7 +58,9 @@ DBMS_autogen/timestamp: \
 	C:/Program\ Files/Microsoft\ Visual\ Studio/2022/Community/VC/Tools/MSVC/14.43.34808/include/yvals.h \
 	C:/Program\ Files/Microsoft\ Visual\ Studio/2022/Community/VC/Tools/MSVC/14.43.34808/include/yvals_core.h \
 	C:/Qt/6.9.3/msvc2022_64/include/QtCore/QException \
+	C:/Qt/6.9.3/msvc2022_64/include/QtCore/QList \
 	C:/Qt/6.9.3/msvc2022_64/include/QtCore/QMap \
+	C:/Qt/6.9.3/msvc2022_64/include/QtCore/QObject \
 	C:/Qt/6.9.3/msvc2022_64/include/QtCore/QString \
 	C:/Qt/6.9.3/msvc2022_64/include/QtCore/QVector \
 	C:/Qt/6.9.3/msvc2022_64/include/QtCore/q17memory.h \
@@ -214,7 +216,9 @@ DBMS_autogen/timestamp: \
 	C:/Qt/6.9.3/msvc2022_64/include/QtGui/qtransform.h \
 	C:/Qt/6.9.3/msvc2022_64/include/QtGui/qwindowdefs.h \
 	C:/Qt/6.9.3/msvc2022_64/include/QtGui/qwindowdefs_win.h \
+	C:/Qt/6.9.3/msvc2022_64/include/QtWidgets/QDialog \
 	C:/Qt/6.9.3/msvc2022_64/include/QtWidgets/QMainWindow \
+	C:/Qt/6.9.3/msvc2022_64/include/QtWidgets/qdialog.h \
 	C:/Qt/6.9.3/msvc2022_64/include/QtWidgets/qmainwindow.h \
 	C:/Qt/6.9.3/msvc2022_64/include/QtWidgets/qsizepolicy.h \
 	C:/Qt/6.9.3/msvc2022_64/include/QtWidgets/qtabwidget.h \
@@ -475,13 +479,20 @@ DBMS_autogen/timestamp: \
 	C:/Users/21495/QTProgram/DBMS/CMakeLists.txt \
 	C:/Users/21495/QTProgram/DBMS/DDL.cpp \
 	C:/Users/21495/QTProgram/DBMS/DDL.h \
+	C:/Users/21495/QTProgram/DBMS/Lexer.cpp \
+	C:/Users/21495/QTProgram/DBMS/Lexer.h \
+	C:/Users/21495/QTProgram/DBMS/Parser.cpp \
+	C:/Users/21495/QTProgram/DBMS/Parser.h \
 	C:/Users/21495/QTProgram/DBMS/build/Desktop_Qt_6_9_3_MSVC2022_64bit-Debug/.qtc/package-manager/auto-setup.cmake \
 	C:/Users/21495/QTProgram/DBMS/build/Desktop_Qt_6_9_3_MSVC2022_64bit-Debug/.qtc/package-manager/maintenance_tool_provider.cmake \
 	C:/Users/21495/QTProgram/DBMS/build/Desktop_Qt_6_9_3_MSVC2022_64bit-Debug/CMakeFiles/3.30.5/CMakeCXXCompiler.cmake \
 	C:/Users/21495/QTProgram/DBMS/build/Desktop_Qt_6_9_3_MSVC2022_64bit-Debug/CMakeFiles/3.30.5/CMakeRCCompiler.cmake \
 	C:/Users/21495/QTProgram/DBMS/build/Desktop_Qt_6_9_3_MSVC2022_64bit-Debug/CMakeFiles/3.30.5/CMakeSystem.cmake \
+	C:/Users/21495/QTProgram/DBMS/dialog.cpp \
+	C:/Users/21495/QTProgram/DBMS/dialog.h \
 	C:/Users/21495/QTProgram/DBMS/main.cpp \
 	C:/Users/21495/QTProgram/DBMS/mainwindow.cpp \
 	C:/Users/21495/QTProgram/DBMS/mainwindow.h \
+	C:/Users/21495/QTProgram/DBMS/dialog.ui \
 	C:/Users/21495/QTProgram/DBMS/mainwindow.ui \
 	C:/Qt/Tools/CMake_64/bin/cmake.exe

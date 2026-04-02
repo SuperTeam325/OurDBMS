@@ -7,30 +7,43 @@
 #include <stdexcept>
 #include <QVector>
 #include <QMap>
+#include <QObject>
 class DDL{
 public:
-enum class FieldType{
-    INT,
-    CHAR,
-    VARCHAR,
-    FLOAT,
-    UNKNOWN
+    enum class FieldType{
+        INT,
+        CHAR,
+        VARCHAR,
+        FLOAT,
+        UNKNOWN
 };
 
-    struct FieldConstraint{
+struct FieldConstraint{
 
-        bool not_null;
-        QString default_val;
-        bool Primary_key;
-        bool Unique_key;
+    bool not_null;
+    QString default_val;
+    bool Primary_key;
+    bool Unique_key;
 
-        FieldConstraint()
-            : not_null(false),
-            default_val(""),
-            Primary_key(false),
-            Unique_key(false)
-        {}
-    };
+    FieldConstraint()
+        : not_null(false),
+        default_val(""),
+        Primary_key(false),
+        Unique_key(false)
+    {}
+
+    QString toString() const {
+        QStringList cons;
+
+        if (Primary_key)   cons << "PRIMARY KEY";
+        if (not_null)      cons << "NOT NULL";
+        if (Unique_key)    cons << "UNIQUE";
+        if (!default_val.isEmpty())
+            cons << "DEFAULT " + default_val;
+
+        return cons.join(" ");
+    }
+};
 
 struct Field{
     QString field_name;
@@ -44,19 +57,30 @@ struct Field{
         if(name.isEmpty()){
             throw std::invalid_argument(
                 "字段名不能为空"
-            );
+                );
         }
 
-        if(field_type==FieldType::INT && length==0) length=4;
-        if(field_type==FieldType::FLOAT && length==0) length=8;
-        if(field_type==FieldType::CHAR && length==0) length=1;
+        if(field_type==FieldType::INT) length=4;
+        if(field_type==FieldType::FLOAT ) length=8;
+        //else length=l;
 
     }
+};
+// 表级约束（例如 UNIQUE (email)）
+struct TableConstraint {
+    QString name;
+    QString type; // UNIQUE / PRIMARY KEY
+    QList<QString> columns;
 };
 
 struct Table{
     QString name;
     QVector<Field> fields;
+    QList<TableConstraint> constraints; // 表级约束
+
+    // 表选项
+    QString charset;
+    QString collate;
 
     bool hasField(const QString& Fname){
         for(const auto f:fields){
@@ -77,6 +101,7 @@ struct Table{
 struct DataBase{
     QString name;
     QMap<QString,Table> tables;
+    QString path;
 
 
     bool hasTable(const QString& tableName) const {
@@ -84,13 +109,38 @@ struct DataBase{
     }
 };
 
-// ========== 新增：函数声明 ==========
-// 辅助函数声明：字符串转字段类型
+// 字符串转字段类型
 static FieldType parseFieldType(const QString& typeStr);
 
-// 核心函数声明：解析CREATE TABLE SQL，返回Table对象
-static Table parseCreateTable(const QString& sql);
+//解析CREATE TABLE SQL，返回Table对象
+//static Table parseCreateTable(const QString& sql);
 
+
+//辅助函数：字段类型 → 字符串
+static QString fieldTypeToString(FieldType type) {
+    switch (type) {
+    case FieldType::INT: return "INT";
+    case FieldType::CHAR: return "CHAR";
+    case FieldType::VARCHAR: return "VARCHAR";
+    case FieldType::FLOAT: return "FLOAT";
+    default: return "UNKNOWN";
+    }
+}
+
+
+// 持久化：保存所有表结构到 schema.dbs
+static void saveSchema(DDL::Table&,QString&);
+//写入DBS文件
+static void writeToDbs(DataBase&,Table&);
+
+// 加载：从 schema.dbs 读取所有表结构
+static DataBase loadSchema();
+
+// 保存表数据到 表名.dbf
+static void saveTableData(const Table &table, const QVector<QVector<QString>> &rows);
+
+// 加载表数据从 表名.dbf
+static QVector<QVector<QString>> loadTableData(const Table &table);
 };
 
 #endif // DDL_H

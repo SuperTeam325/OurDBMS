@@ -58,7 +58,9 @@ C:/Users/21495/QTProgram/DBMS/build/Desktop_Qt_6_9_3_MSVC2022_64bit-Debug/DBMS_a
   C:/Program\ Files/Microsoft\ Visual\ Studio/2022/Community/VC/Tools/MSVC/14.43.34808/include/yvals.h \
   C:/Program\ Files/Microsoft\ Visual\ Studio/2022/Community/VC/Tools/MSVC/14.43.34808/include/yvals_core.h \
   C:/Qt/6.9.3/msvc2022_64/include/QtCore/QException \
+  C:/Qt/6.9.3/msvc2022_64/include/QtCore/QList \
   C:/Qt/6.9.3/msvc2022_64/include/QtCore/QMap \
+  C:/Qt/6.9.3/msvc2022_64/include/QtCore/QObject \
   C:/Qt/6.9.3/msvc2022_64/include/QtCore/QString \
   C:/Qt/6.9.3/msvc2022_64/include/QtCore/QVector \
   C:/Qt/6.9.3/msvc2022_64/include/QtCore/q17memory.h \
@@ -222,4 +224,6 @@ C:/Users/21495/QTProgram/DBMS/build/Desktop_Qt_6_9_3_MSVC2022_64bit-Debug/DBMS_a
   C:/Qt/6.9.3/msvc2022_64/include/QtWidgets/qtwidgetsexports.h \
   C:/Qt/6.9.3/msvc2022_64/include/QtWidgets/qtwidgetsglobal.h \
   C:/Qt/6.9.3/msvc2022_64/include/QtWidgets/qwidget.h \
-  C:/Users/21495/QTProgram/DBMS/DDL.h
+  C:/Users/21495/QTProgram/DBMS/DDL.h \
+  C:/Users/21495/QTProgram/DBMS/Lexer.h \
+  C:/Users/21495/QTProgram/DBMS/Parser.h
