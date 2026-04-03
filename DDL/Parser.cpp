@@ -116,13 +116,10 @@ DDL::Table Parser::parseCreateTable(const QString& sql,DDL::DataBase& db){
     //重置
     tokens.clear();
     pos=0;
+    table.fields.clear();
     //获取被差分成多个Toekn的sql
     tokens=le.ReadSQL(sql);
 
-    QString field_name;
-    DDL::FieldType field_type;
-    uint16_t length=0;
-    DDL::FieldConstraint field_Constraint;
 
     match(TOKEN_CREATE);
     match(TOKEN_TABLE);
@@ -146,9 +143,113 @@ DDL::Table Parser::parseCreateTable(const QString& sql,DDL::DataBase& db){
     match(TOKEN_LPAREN);
     //循环解析字段
     while(peek().type!=TOKEN_EOF){
+        QString field_name;
+        DDL::FieldType field_type;
+        uint16_t length=0;
+        int Ccount=0;
+        DDL::FieldConstraint field_Constraint;
 
+        //解析表级约束
+        if(peek().type==TOKEN_CONSTRAINT){
+            QString Cname;
+            next();
+            if(peek().type==TOKEN_IDENTIFIER){
+                Cname=peek().text;
+                next();
+            }else{
+
+                throw std::invalid_argument(QString("语法错误: near %1").arg(peek().text).toStdString());
+            }
+            Token t=peek();
+
+            if(t.type==TOKEN_PRIMARY){
+                next();
+                match(TOKEN_KEY);
+                field_Constraint.Primary_key=true;
+                field_Constraint.Const_Name[t.type]=Cname;
+
+            }else if(t.type==TOKEN_NOT){
+                next();
+                match(TOKEN_NULL);
+                throw std::invalid_argument(QString("语法错误不支持NOT NULL: near %1").arg(peek().text).toStdString());
+
+            }else if(t.type==TOKEN_UNIQUE){
+                next();
+                field_Constraint.Unique_key=true;
+                field_Constraint.Const_Name[t.type]=Cname;
+                //qDebug()<<"email约束:"<<field_Constraint.Const_Name[t.type];
+
+            }else if(t.type==TOKEN_DEFAULT){
+                next();
+                field_Constraint.default_val=peek().text;
+                field_Constraint.Const_Name[t.type]=Cname;
+                next();
+            }else if(t.type==TOKEN_AUTO_INCREMENT){
+                next();
+                field_Constraint.Auto_increasement=true;
+                field_Constraint.Const_Name[t.type]=Cname;
+            }
+            match(TOKEN_LPAREN);
+            bool isHave=false;
+            if(peek().type==TOKEN_IDENTIFIER){
+                for(int i=0;i<table.fields.size();++i){
+                    if(table.fields[i].field_name==peek().text){
+                        qDebug()<<table.fields[i].field_name;
+                        // 合并约束，保留原来的，只新增表级约束
+                        if (field_Constraint.Primary_key)
+                            table.fields[i].field_Constraint.Primary_key = true;
+                        if (field_Constraint.Unique_key)
+                            qDebug()<<"更新"<<table.fields[i].field_name<<"UNIQUE约束";
+                            table.fields[i].field_Constraint.Unique_key = true;
+                        if (!field_Constraint.default_val.isEmpty())
+                            table.fields[i].field_Constraint.default_val = field_Constraint.default_val;
+                        if (field_Constraint.Auto_increasement)
+                            table.fields[i].field_Constraint.Auto_increasement = true;
+
+
+                        table.fields[i].field_Constraint.Const_Name[t.type]=Cname;
+                        isHave=true;
+                        break;
+                    }
+                }
+                if(!isHave){
+
+                    throw std::invalid_argument(QString("语法错误: near %1").arg(peek().text).toStdString());
+                }
+            }else{
+                throw std::invalid_argument(QString("语法错误: near %1").arg(peek().text).toStdString());
+            }
+            next();
+            match(TOKEN_RPAREN);
+
+            if(peek().type==TOKEN_COMMA){
+                next();
+
+                continue;
+            }else if(peek().type==TOKEN_RPAREN){
+                next();
+
+                match(TOKEN_SEMICOLON);
+                continue;
+            }else{
+
+                match(TOKEN_COMMA);
+            }
+
+        }
 
         if(peek().type==TOKEN_IDENTIFIER){
+            bool isHave=false;
+            for(int i=0;i<table.fields.size();++i){
+                if(table.fields[i].field_name==peek().text){
+                    qDebug()<<table.fields[i].field_name;
+                    isHave=true;
+                    break;
+                }
+            }
+            if(isHave){
+               throw std::invalid_argument(QString("语法错误(字段名重复): near %1").arg(peek().text).toStdString());
+            }
             field_name=peek().text;
             next();
         }else{
@@ -191,6 +292,9 @@ DDL::Table Parser::parseCreateTable(const QString& sql,DDL::DataBase& db){
                 next();
                 field_Constraint.default_val=peek().text;
                 next();
+            }else if(t.type==TOKEN_AUTO_INCREMENT){
+                next();
+                field_Constraint.Auto_increasement=true;
             }
             else{
                 break;

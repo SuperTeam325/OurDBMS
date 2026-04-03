@@ -86,6 +86,9 @@ void MainWindow::on_SubmitSQL_clicked()
 
             db.tables[t.name]=t;
 
+
+
+
            // 添加新表
            /* schoolDB.tables[t.name] = t;
 
@@ -99,6 +102,12 @@ void MainWindow::on_SubmitSQL_clicked()
             ui->Terminal->append("SQL执行失败：" +QString(e.what()));
             }
     }
+     try{
+         DDL::loadSchema(t,db.path);
+     }catch(const std::invalid_argument& e) {
+         ui->Terminal->append("SQL执行失败：" +QString(e.what()));
+     }
+
 
 }
 

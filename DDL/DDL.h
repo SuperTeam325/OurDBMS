@@ -8,6 +8,7 @@
 #include <QVector>
 #include <QMap>
 #include <QObject>
+#include "Lexer.h"
 class DDL{
 public:
     enum class FieldType{
@@ -24,12 +25,16 @@ struct FieldConstraint{
     QString default_val;
     bool Primary_key;
     bool Unique_key;
+    bool Auto_increasement;
+
+    QMap<TokenType,QString> Const_Name;
 
     FieldConstraint()
         : not_null(false),
         default_val(""),
         Primary_key(false),
-        Unique_key(false)
+        Unique_key(false),
+        Auto_increasement(false)
     {}
 
     QString toString() const {
@@ -38,13 +43,14 @@ struct FieldConstraint{
         if (Primary_key)   cons << "PRIMARY KEY";
         if (not_null)      cons << "NOT NULL";
         if (Unique_key)    cons << "UNIQUE";
+        if(Auto_increasement) cons<<"AUTO_INCREMENT";
         if (!default_val.isEmpty())
             cons << "DEFAULT " + default_val;
 
         return cons.join(" ");
     }
-};
 
+};
 struct Field{
     QString field_name;
     FieldType field_type;
@@ -54,11 +60,11 @@ struct Field{
     Field(QString name, FieldType type, uint16_t l=0, FieldConstraint c={})
         : field_name(name), field_type(type),length(l),field_Constraint(c){
 
-        if(name.isEmpty()){
+        /*if(name.isEmpty()){
             throw std::invalid_argument(
                 "字段名不能为空"
                 );
-        }
+        }*/
 
         if(field_type==FieldType::INT) length=4;
         if(field_type==FieldType::FLOAT ) length=8;
@@ -66,6 +72,7 @@ struct Field{
 
     }
 };
+
 // 表级约束（例如 UNIQUE (email)）
 struct TableConstraint {
     QString name;
@@ -134,7 +141,7 @@ static void saveSchema(DDL::Table&,QString&);
 static void writeToDbs(DataBase&,Table&);
 
 // 加载：从 schema.dbs 读取所有表结构
-static DataBase loadSchema();
+static DataBase loadSchema(DDL::Table& table,QString& path);
 
 // 保存表数据到 表名.dbf
 static void saveTableData(const Table &table, const QVector<QVector<QString>> &rows);

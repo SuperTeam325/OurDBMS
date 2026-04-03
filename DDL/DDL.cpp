@@ -5,31 +5,6 @@
 #include <QDir>
 
 //保存表结构（字段名，类型，约束）
-/*void DDL::saveSchema(const DataBase& db){
-    QFile file("schema.dbs");
-    if(!file.open(QIODevice::WriteOnly)) return;
-
-    QDataStream out(&file);
-
-    out<<db.name;
-    out<<(int)db.tables.size();
-
-    //表字段信息
-    for(QMap<QString,Table>::const_iterator it=db.tables.begin();it!=db.tables.end();it++){
-        out<<it->name;
-        out<<(int)it->fields.size();
-        for(auto f:it->fields){
-            out<<f.field_name;
-            out<<(int)f.field_type; //枚举类型转为（int）才能正确写入文件
-            out<<(int)f.length;
-            out<<f.field_Constraint.not_null;
-            out << f.field_Constraint.default_val;
-            out << f.field_Constraint.Primary_key;
-            out << f.field_Constraint.Unique_key;
-        }
-    }
-    file.close();
-}*/
 void DDL::saveSchema(DDL::Table& table,QString& path){
 
     if(path.isEmpty()){
@@ -45,49 +20,114 @@ void DDL::saveSchema(DDL::Table& table,QString& path){
     //对于表的结构文件
     QFile file(TablePath+"/"+table.name+".tbs");
     //这里是创建的写入，不追加也没啥
-    if(!file.open(QIODevice::WriteOnly | QIODevice::Append)) return;
+    if(!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) return;
     QDataStream out(&file);
+    out.setVersion(QDataStream::Qt_5_15);
 
-    //out<<db.name;
-    //out<<(int)db.tables.size();
+    out<<table.name;
+    out<<(int)table.fields.size();
+    qDebug() << "==== 保存字段数量：" << table.fields.size();
 
+    QString empty_name="";
     //表字段信息
     //for(QMap<QString,Table>::const_iterator it=db.tables.begin();it!=db.tables.end();it++){
-        out<<table.name;
-        out<<(int)table.fields.size();
         for(auto f:table.fields){
             out<<f.field_name;
             out<<(int)f.field_type; //枚举类型转为（int）才能正确写入文件
             out<<(int)f.length;
-            out<<f.field_Constraint.not_null;
+
+            //NOT NULL
+           out << f.field_Constraint.not_null;
+           if (f.field_Constraint.not_null){
+                if(f.field_Constraint.Const_Name[TOKEN_NOT].isEmpty()){
+                    out << "__not_null_" + table.name + "_" + f.field_name;
+                }else{
+                    out<<f.field_Constraint.Const_Name[TOKEN_NOT];
+                }
+            }else{
+                out << empty_name;
+            }
+
+
+            // DEFAULT
             out << f.field_Constraint.default_val;
+            if (!f.field_Constraint.default_val.isEmpty()){
+                if(f.field_Constraint.Const_Name[TOKEN_DEFAULT].isEmpty()){
+                     out << "__default_" + table.name + "_" + f.field_name;
+                }else{
+                    out<<f.field_Constraint.Const_Name[TOKEN_DEFAULT];
+                }
+            }else{
+                  out << empty_name;
+            }
+
+            // PRIMARY KEY
             out << f.field_Constraint.Primary_key;
+            if (f.field_Constraint.Primary_key){
+                if(f.field_Constraint.Const_Name[TOKEN_PRIMARY].isEmpty()){
+                    out << "__pk_" + table.name + "_" + f.field_name;
+
+                }else{
+                    out<<f.field_Constraint.Const_Name[TOKEN_PRIMARY];
+                }
+            }else{
+                  out << empty_name;
+            }
+
+            // UNIQUE
             out << f.field_Constraint.Unique_key;
+            if (f.field_Constraint.Unique_key){
+                if(f.field_Constraint.Const_Name[TOKEN_UNIQUE].isEmpty()){
+                    out << "__unique_" + table.name + "_" + f.field_name;
+
+                }else{
+                    out<<f.field_Constraint.Const_Name[TOKEN_UNIQUE];
+                }
+            }else{
+                  out << empty_name;
+            }
+
+            // AUTO_INCREMENT
+            out << f.field_Constraint.Auto_increasement;
+            if (f.field_Constraint.Auto_increasement){
+                if(f.field_Constraint.Const_Name[TOKEN_AUTO_INCREMENT].isEmpty()){
+                   out << "__auto_" + table.name + "_" + f.field_name;
+
+                }else{
+                    out<<f.field_Constraint.Const_Name[TOKEN_AUTO_INCREMENT];
+                }
+            }else{
+                 out << empty_name;
+            }
+
         }
+
    // }
     file.close();
 }
 
 
 //读取表结构
-DDL::DataBase DDL::loadSchema()
+DDL::DataBase DDL::loadSchema(DDL::Table& table,QString& path)
 {
+   // QString TablePath=path+"/"+table.name+table.name+".tbs";
+    QString TablePath="C:/Users/21495/Desktop/DBMS测试/test/users/users.tbs";
+
     DataBase db;
-    QFile file("schema.dbs");
+    QFile file(TablePath);
     if(!file.open(QIODevice::ReadOnly)) return db;
 
     QDataStream in(&file);
+     in.setVersion(QDataStream::Qt_5_15);
 
-    in>>db.name;
-    int tableCount;
-    in >> tableCount;
-    qDebug() << "读取表数量：" << tableCount;
+    QVector<TokenType> keyType={TOKEN_NOT, TOKEN_DEFAULT,TOKEN_PRIMARY,TOKEN_UNIQUE,TOKEN_AUTO_INCREMENT};
 
-    for(int i=0;i<tableCount;i++){
-        Table table;
         in >> table.name;
         int fieldsCount;
         in>>fieldsCount;
+
+        qDebug()<<"表名:"+table.name;
+        qDebug()<<"字段个数"+QString::number(fieldsCount);
 
         for(int j=0;j<fieldsCount;j++){
             FieldConstraint fc;
@@ -95,23 +135,44 @@ DDL::DataBase DDL::loadSchema()
             int type;
             int len=0;
 
-            in >> name;          
+            in >> name;
             in >> type;
             in >> len;
+
             in >> fc.not_null;
+            in>> fc.Const_Name[TOKEN_NOT];
+
             in >> fc.default_val;
+            in>> fc.Const_Name[TOKEN_DEFAULT];
+
             in >> fc.Primary_key;
+            in>> fc.Const_Name[TOKEN_PRIMARY];
+
+           /* qDebug() << "流状态：" << in.status();
             in >> fc.Unique_key;
+            qDebug() << "读取 Unique_key 结果：" << fc.Unique_key;*/
+            in >> fc.Unique_key;
+            in>> fc.Const_Name[TOKEN_UNIQUE];
+
+            in >> fc.Auto_increasement;
+            in >> fc.Const_Name[TOKEN_AUTO_INCREMENT];
 
             Field f(name,(FieldType)type,(uint16_t)len,fc);
             table.fields.append(f);
+
             qDebug()<<"字段名:"+f.field_name;
             qDebug()<<"字段类型:"+DDL::fieldTypeToString(f.field_type);
             qDebug()<<"字段长度:"+QString::number(f.length);
             qDebug()<<"字段约束:"+f.field_Constraint.toString();
+
+            for(const auto& kt:keyType){
+                if(!f.field_Constraint.Const_Name[kt].isEmpty()){
+                    qDebug()<<"字段约束名:"+f.field_Constraint.Const_Name[kt];
+                }
+            }
+
         }
-        db.tables[table.name]=table;
-    }
+      //  db.tables[table.name]=table;
     file.close();
     return db;
 }

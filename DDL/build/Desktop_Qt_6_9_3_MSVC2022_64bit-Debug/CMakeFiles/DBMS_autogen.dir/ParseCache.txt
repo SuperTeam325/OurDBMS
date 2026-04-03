@@ -231,14 +231,14 @@ C:/Users/21495/QTProgram/DBMS/mainwindow.h
  mdp:C:/Users/21495/QTProgram/DBMS/Parser.h
  mdp:C:/Users/21495/QTProgram/DBMS/mainwindow.h
 C:/Users/21495/QTProgram/DBMS/main.cpp
+C:/Users/21495/QTProgram/DBMS/Lexer.h
 C:/Users/21495/QTProgram/DBMS/mainwindow.cpp
  uic:./ui_dialog.h
  uic:./ui_mainwindow.h
-C:/Users/21495/QTProgram/DBMS/Lexer.h
 C:/Users/21495/QTProgram/DBMS/DDL.h
 C:/Users/21495/QTProgram/DBMS/AST.h
-C:/Users/21495/QTProgram/DBMS/DDL.cpp
 C:/Users/21495/QTProgram/DBMS/Parser.h
+C:/Users/21495/QTProgram/DBMS/DDL.cpp
 C:/Users/21495/QTProgram/DBMS/Lexer.cpp
 C:/Users/21495/QTProgram/DBMS/Parser.cpp
 C:/Users/21495/QTProgram/DBMS/dialog.h
