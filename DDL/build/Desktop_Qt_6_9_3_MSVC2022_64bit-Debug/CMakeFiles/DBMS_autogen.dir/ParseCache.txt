@@ -72,6 +72,7 @@ C:/Users/21495/QTProgram/DBMS/mainwindow.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtCore/q20type_traits.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtCore/q20utility.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtCore/q23utility.h
+ mdp:C:/Qt/6.9.3/msvc2022_64/include/QtCore/qabstractitemmodel.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtCore/qalgorithms.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtCore/qanystringview.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtCore/qarraydata.h
@@ -114,11 +115,13 @@ C:/Users/21495/QTProgram/DBMS/mainwindow.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtCore/qhash.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtCore/qhashfunctions.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtCore/qiodevicebase.h
+ mdp:C:/Qt/6.9.3/msvc2022_64/include/QtCore/qitemselectionmodel.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtCore/qiterable.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtCore/qiterator.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtCore/qlatin1stringview.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtCore/qline.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtCore/qlist.h
+ mdp:C:/Qt/6.9.3/msvc2022_64/include/QtCore/qlocale.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtCore/qlogging.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtCore/qmalloc.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtCore/qmap.h
@@ -139,6 +142,7 @@ C:/Users/21495/QTProgram/DBMS/mainwindow.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtCore/qprocessordetection.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtCore/qrect.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtCore/qrefcount.h
+ mdp:C:/Qt/6.9.3/msvc2022_64/include/QtCore/qregularexpression.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtCore/qscopedpointer.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtCore/qscopeguard.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtCore/qset.h
@@ -216,12 +220,28 @@ C:/Users/21495/QTProgram/DBMS/mainwindow.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtGui/qtguiexports.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtGui/qtguiglobal.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtGui/qtransform.h
+ mdp:C:/Qt/6.9.3/msvc2022_64/include/QtGui/qvalidator.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtGui/qwindowdefs.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtGui/qwindowdefs_win.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtWidgets/QMainWindow
+ mdp:C:/Qt/6.9.3/msvc2022_64/include/QtWidgets/QTreeWidgetItem
+ mdp:C:/Qt/6.9.3/msvc2022_64/include/QtWidgets/qabstractitemdelegate.h
+ mdp:C:/Qt/6.9.3/msvc2022_64/include/QtWidgets/qabstractitemview.h
+ mdp:C:/Qt/6.9.3/msvc2022_64/include/QtWidgets/qabstractscrollarea.h
+ mdp:C:/Qt/6.9.3/msvc2022_64/include/QtWidgets/qabstractslider.h
+ mdp:C:/Qt/6.9.3/msvc2022_64/include/QtWidgets/qabstractspinbox.h
+ mdp:C:/Qt/6.9.3/msvc2022_64/include/QtWidgets/qframe.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtWidgets/qmainwindow.h
+ mdp:C:/Qt/6.9.3/msvc2022_64/include/QtWidgets/qrubberband.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtWidgets/qsizepolicy.h
+ mdp:C:/Qt/6.9.3/msvc2022_64/include/QtWidgets/qslider.h
+ mdp:C:/Qt/6.9.3/msvc2022_64/include/QtWidgets/qstyle.h
+ mdp:C:/Qt/6.9.3/msvc2022_64/include/QtWidgets/qstyleoption.h
+ mdp:C:/Qt/6.9.3/msvc2022_64/include/QtWidgets/qtabbar.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtWidgets/qtabwidget.h
+ mdp:C:/Qt/6.9.3/msvc2022_64/include/QtWidgets/qtreeview.h
+ mdp:C:/Qt/6.9.3/msvc2022_64/include/QtWidgets/qtreewidget.h
+ mdp:C:/Qt/6.9.3/msvc2022_64/include/QtWidgets/qtreewidgetitemiterator.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtWidgets/qtwidgets-config.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtWidgets/qtwidgetsexports.h
  mdp:C:/Qt/6.9.3/msvc2022_64/include/QtWidgets/qtwidgetsglobal.h
@@ -231,14 +251,14 @@ C:/Users/21495/QTProgram/DBMS/mainwindow.h
  mdp:C:/Users/21495/QTProgram/DBMS/Parser.h
  mdp:C:/Users/21495/QTProgram/DBMS/mainwindow.h
 C:/Users/21495/QTProgram/DBMS/main.cpp
-C:/Users/21495/QTProgram/DBMS/Lexer.h
 C:/Users/21495/QTProgram/DBMS/mainwindow.cpp
  uic:./ui_dialog.h
  uic:./ui_mainwindow.h
+C:/Users/21495/QTProgram/DBMS/Lexer.h
 C:/Users/21495/QTProgram/DBMS/DDL.h
 C:/Users/21495/QTProgram/DBMS/AST.h
-C:/Users/21495/QTProgram/DBMS/Parser.h
 C:/Users/21495/QTProgram/DBMS/DDL.cpp
+C:/Users/21495/QTProgram/DBMS/Parser.h
 C:/Users/21495/QTProgram/DBMS/Lexer.cpp
 C:/Users/21495/QTProgram/DBMS/Parser.cpp
 C:/Users/21495/QTProgram/DBMS/dialog.h

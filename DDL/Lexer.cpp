@@ -78,6 +78,9 @@ TokenType Lexer::checkKeyword(const QString& word)
     if(upper == "DATABASE") return TOKEN_DATABASE;
     if(upper == "ALTER")  return TOKEN_ALTER;
     if(upper == "DROP") return TOKEN_DROP;
+    if(upper == "ADD")  return TOKEN_ADD;
+    if(upper == "MODIFY")  return TOKEN_MODIFY;
+    if(upper == "COLUMN") return TOKEN_COLUMN;
     if (upper == "INT") return TOKEN_INT;
     if (upper == "FLOAT") return TOKEN_FLOAT;
     if (upper == "CHAR") return TOKEN_CHAR;
@@ -89,6 +92,9 @@ TokenType Lexer::checkKeyword(const QString& word)
     if (upper == "UNIQUE") return TOKEN_UNIQUE;
     if (upper == "DEFAULT") return TOKEN_DEFAULT;
     if (upper == "AUTO_INCREMENT") return TOKEN_AUTO_INCREMENT;
+    if(upper=="FOREIGN") return TOKEN_FOREIGN;
+    if(upper=="REFERENCES") return TOKEN_REFERENCES;
+
     if (upper == "CONSTRAINT") return TOKEN_CONSTRAINT;
 
     return TOKEN_IDENTIFIER;

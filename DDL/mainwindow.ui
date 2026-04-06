@@ -170,6 +170,21 @@
        <string>设置数据库路径</string>
       </property>
      </widget>
+     <widget class="QTreeWidget" name="treeWidget">
+      <property name="geometry">
+       <rect>
+        <x>60</x>
+        <y>150</y>
+        <width>391</width>
+        <height>761</height>
+       </rect>
+      </property>
+      <column>
+       <property name="text">
+        <string>数据库导航</string>
+       </property>
+      </column>
+     </widget>
     </widget>
     <widget class="QWidget" name="page_3"/>
     <widget class="QWidget" name="page_2"/>

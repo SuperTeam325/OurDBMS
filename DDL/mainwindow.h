@@ -5,6 +5,8 @@
 #include "DDL.h"
 #include "Lexer.h"
 #include "Parser.h"
+#include <QTreeWidgetItem>
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
@@ -33,6 +35,13 @@ private:
     DDL::FieldType parseFieldType(const QString& typeStr);
     //数据库文件路径
     QString DBpath;
+    //结构显示
+    void displayDB();
+    //显示工具
+    QStringList saveExpandedPaths(QTreeWidgetItem *item, const QString &parentPath);
+    void restoreExpandedPaths(QTreeWidgetItem *item, const QString &parentPath, const QStringList &paths);
+    //刷新显示
+    void refreshDBTreeWithState();
 
 };
 #endif // MAINWINDOW_H

@@ -26,7 +26,7 @@ void DDL::saveSchema(DDL::Table& table,QString& path){
 
     out<<table.name;
     out<<(int)table.fields.size();
-    qDebug() << "==== 保存字段数量：" << table.fields.size();
+    qDebug() << "保存字段数量：" << table.fields.size();
 
     QString empty_name="";
     //表字段信息
@@ -99,6 +99,18 @@ void DDL::saveSchema(DDL::Table& table,QString& path){
             }else{
                  out << empty_name;
             }
+            //FOREIGN KEY
+            out<<f.field_Constraint.Foreign_key;
+            if (f.field_Constraint.Foreign_key){
+                if(f.field_Constraint.Const_Name[TOKEN_FOREIGN].isEmpty()){
+                    out << "__Foreign_" + table.name + "_" + f.field_name;
+
+                }else{
+                    out<<f.field_Constraint.Const_Name[TOKEN_FOREIGN];
+                }
+            }else{
+                out << empty_name;
+            }
 
         }
 
@@ -108,19 +120,21 @@ void DDL::saveSchema(DDL::Table& table,QString& path){
 
 
 //读取表结构
-DDL::DataBase DDL::loadSchema(DDL::Table& table,QString& path)
+DDL::Table DDL::loadSchema(const QString& path)
 {
-   // QString TablePath=path+"/"+table.name+table.name+".tbs";
-    QString TablePath="C:/Users/21495/Desktop/DBMS测试/test/users/users.tbs";
+    qDebug()<<"当前读取文件"<<path;
 
-    DataBase db;
+    QString TablePath=path;
+    Table table{};
     QFile file(TablePath);
-    if(!file.open(QIODevice::ReadOnly)) return db;
-
+    if(!file.open(QIODevice::ReadOnly)) {
+        qDebug()<<"文件打开失败"<<file.fileName();
+        return table;
+    }
     QDataStream in(&file);
      in.setVersion(QDataStream::Qt_5_15);
 
-    QVector<TokenType> keyType={TOKEN_NOT, TOKEN_DEFAULT,TOKEN_PRIMARY,TOKEN_UNIQUE,TOKEN_AUTO_INCREMENT};
+    QVector<TokenType> keyType={TOKEN_NOT, TOKEN_DEFAULT,TOKEN_PRIMARY,TOKEN_UNIQUE,TOKEN_AUTO_INCREMENT,TOKEN_FOREIGN};
 
         in >> table.name;
         int fieldsCount;
@@ -148,14 +162,14 @@ DDL::DataBase DDL::loadSchema(DDL::Table& table,QString& path)
             in >> fc.Primary_key;
             in>> fc.Const_Name[TOKEN_PRIMARY];
 
-           /* qDebug() << "流状态：" << in.status();
-            in >> fc.Unique_key;
-            qDebug() << "读取 Unique_key 结果：" << fc.Unique_key;*/
             in >> fc.Unique_key;
             in>> fc.Const_Name[TOKEN_UNIQUE];
 
             in >> fc.Auto_increasement;
             in >> fc.Const_Name[TOKEN_AUTO_INCREMENT];
+
+            in >> fc.Foreign_key;
+            in >> fc.Const_Name[TOKEN_FOREIGN];
 
             Field f(name,(FieldType)type,(uint16_t)len,fc);
             table.fields.append(f);
@@ -174,7 +188,7 @@ DDL::DataBase DDL::loadSchema(DDL::Table& table,QString& path)
         }
       //  db.tables[table.name]=table;
     file.close();
-    return db;
+    return table;
 }
 
 //写入DBS文件
@@ -182,7 +196,7 @@ void DDL::writeToDbs(DataBase& db,Table& t){
     QString path=db.path+"/"+db.name+".dbs";
     QFile f(path);
     //追加模式
-    if (!f.open(QIODevice::Append | QIODevice::Append)) {
+    if (!f.open(QIODevice::Append)) {
         qDebug()<<"写入DBS失败";
         return;
     }
@@ -191,6 +205,22 @@ void DDL::writeToDbs(DataBase& db,Table& t){
     QDataStream out(&f);
     out<<t.name;
     f.close();
+}
+//读取DBS文件
+QStringList DDL::readFromDbs(QString& path){
+    QFile f(path);
+    QStringList list{};
+    if(!f.open(QIODevice::ReadOnly)){
+        qDebug("读取.dbs失败");
+        return list;
+    }
+    QDataStream in(&f);
+    QString tN;
+    while(!in.atEnd()){
+        in>> tN;
+        list.append(tN);
+    }
+    return list;
 }
 
 // ==============================================

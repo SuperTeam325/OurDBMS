@@ -26,6 +26,7 @@ struct FieldConstraint{
     bool Primary_key;
     bool Unique_key;
     bool Auto_increasement;
+    bool Foreign_key;
 
     QMap<TokenType,QString> Const_Name;
 
@@ -34,7 +35,8 @@ struct FieldConstraint{
         default_val(""),
         Primary_key(false),
         Unique_key(false),
-        Auto_increasement(false)
+        Auto_increasement(false),
+        Foreign_key(false)
     {}
 
     QString toString() const {
@@ -44,6 +46,21 @@ struct FieldConstraint{
         if (not_null)      cons << "NOT NULL";
         if (Unique_key)    cons << "UNIQUE";
         if(Auto_increasement) cons<<"AUTO_INCREMENT";
+        if(Foreign_key) cons<<"FOREIGN KEY";
+        if (!default_val.isEmpty())
+            cons << "DEFAULT " + default_val;
+
+        return cons.join(" ");
+    }
+
+    QString toString(TokenType t) const {
+        QStringList cons;
+
+        if (t==TOKEN_PRIMARY)   cons << "PRIMARY KEY";
+        if (t==TOKEN_NOT)      cons << "NOT NULL";
+        if (t==TOKEN_UNIQUE)    cons << "UNIQUE";
+        if(t==TOKEN_AUTO_INCREMENT) cons<<"AUTO_INCREMENT";
+        if(t==TOKEN_FOREIGN) cons<<"FOREIGN KEY";
         if (!default_val.isEmpty())
             cons << "DEFAULT " + default_val;
 
@@ -60,11 +77,11 @@ struct Field{
     Field(QString name, FieldType type, uint16_t l=0, FieldConstraint c={})
         : field_name(name), field_type(type),length(l),field_Constraint(c){
 
-        /*if(name.isEmpty()){
+        if(name.isEmpty()){
             throw std::invalid_argument(
                 "字段名不能为空"
                 );
-        }*/
+        }
 
         if(field_type==FieldType::INT) length=4;
         if(field_type==FieldType::FLOAT ) length=8;
@@ -92,6 +109,13 @@ struct Table{
     bool hasField(const QString& Fname){
         for(const auto f:fields){
             if(f.field_name==Fname) return true;
+        }
+        return false;
+    }
+
+    bool hasPK(){
+        for(const auto f:fields){
+            if(f.field_Constraint.Primary_key) return true;
         }
         return false;
     }
@@ -139,9 +163,11 @@ static QString fieldTypeToString(FieldType type) {
 static void saveSchema(DDL::Table&,QString&);
 //写入DBS文件
 static void writeToDbs(DataBase&,Table&);
+//读取DBS文件
+static QStringList readFromDbs(QString &);
 
 // 加载：从 schema.dbs 读取所有表结构
-static DataBase loadSchema(DDL::Table& table,QString& path);
+static Table loadSchema(const QString& path);
 
 // 保存表数据到 表名.dbf
 static void saveTableData(const Table &table, const QVector<QVector<QString>> &rows);

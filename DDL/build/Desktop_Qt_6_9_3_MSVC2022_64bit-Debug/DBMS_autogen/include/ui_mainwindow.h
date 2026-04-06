@@ -12,6 +12,7 @@
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QFrame>
+#include <QtWidgets/QHeaderView>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMenuBar>
@@ -20,6 +21,7 @@
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QTextEdit>
 #include <QtWidgets/QToolBar>
+#include <QtWidgets/QTreeWidget>
 #include <QtWidgets/QWidget>
 
 QT_BEGIN_NAMESPACE
@@ -39,6 +41,7 @@ public:
     QFrame *line_4;
     QPushButton *SubmitSQL;
     QPushButton *SetPath;
+    QTreeWidget *treeWidget;
     QWidget *page_3;
     QWidget *page_2;
     QMenuBar *menubar;
@@ -106,6 +109,9 @@ public:
         SetPath->setObjectName("SetPath");
         SetPath->setGeometry(QRect(480, 20, 151, 41));
         SetPath->setFont(font2);
+        treeWidget = new QTreeWidget(page);
+        treeWidget->setObjectName("treeWidget");
+        treeWidget->setGeometry(QRect(60, 150, 391, 761));
         stackedWidget->addWidget(page);
         page_3 = new QWidget();
         page_3->setObjectName("page_3");
@@ -139,6 +145,8 @@ public:
         label->setText(QCoreApplication::translate("MainWindow", "SQL\345\214\272", nullptr));
         SubmitSQL->setText(QCoreApplication::translate("MainWindow", "\345\217\221\351\200\201", nullptr));
         SetPath->setText(QCoreApplication::translate("MainWindow", "\350\256\276\347\275\256\346\225\260\346\215\256\345\272\223\350\267\257\345\276\204", nullptr));
+        QTreeWidgetItem *___qtreewidgetitem = treeWidget->headerItem();
+        ___qtreewidgetitem->setText(0, QCoreApplication::translate("MainWindow", "\346\225\260\346\215\256\345\272\223\345\257\274\350\210\252", nullptr));
         toolBar->setWindowTitle(QCoreApplication::translate("MainWindow", "toolBar", nullptr));
     } // retranslateUi
 

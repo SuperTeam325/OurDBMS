@@ -12,6 +12,9 @@ enum TokenType {
     TOKEN_ALTER,
     TOKEN_DATABASE, //数据库名
     TOKEN_TABLE,
+    TOKEN_ADD,
+    TOKEN_MODIFY,
+    TOKEN_COLUMN,
     //类型
     TOKEN_INT,
     TOKEN_FLOAT,
@@ -32,6 +35,8 @@ enum TokenType {
     TOKEN_UNIQUE,
     TOKEN_DEFAULT,
     TOKEN_AUTO_INCREMENT,
+    TOKEN_FOREIGN,
+    TOKEN_REFERENCES,
     TOKEN_CONSTRAINT,//表级约束
 
     TOKEN_NUMBER,
