@@ -1,8 +1,0 @@
-C:/Users/21495/QTProgram/DBMS/build/Desktop_Qt_6_9_3_MSVC2022_64bit-Debug/CMakeFiles/DBMS.dir
-C:/Users/21495/QTProgram/DBMS/build/Desktop_Qt_6_9_3_MSVC2022_64bit-Debug/CMakeFiles/edit_cache.dir
-C:/Users/21495/QTProgram/DBMS/build/Desktop_Qt_6_9_3_MSVC2022_64bit-Debug/CMakeFiles/rebuild_cache.dir
-C:/Users/21495/QTProgram/DBMS/build/Desktop_Qt_6_9_3_MSVC2022_64bit-Debug/CMakeFiles/list_install_components.dir
-C:/Users/21495/QTProgram/DBMS/build/Desktop_Qt_6_9_3_MSVC2022_64bit-Debug/CMakeFiles/install.dir
-C:/Users/21495/QTProgram/DBMS/build/Desktop_Qt_6_9_3_MSVC2022_64bit-Debug/CMakeFiles/install/local.dir
-C:/Users/21495/QTProgram/DBMS/build/Desktop_Qt_6_9_3_MSVC2022_64bit-Debug/CMakeFiles/DBMS_autogen_timestamp_deps.dir
-C:/Users/21495/QTProgram/DBMS/build/Desktop_Qt_6_9_3_MSVC2022_64bit-Debug/CMakeFiles/DBMS_autogen.dir
