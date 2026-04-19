@@ -23,6 +23,7 @@ MainWindow::~MainWindow()
 void MainWindow::on_SubmitSQL_clicked()
 {
      QString sql=ui->sqlEdit->toPlainText().trimmed();
+
     //大小写不敏感
      if(sql.startsWith("CREATE DATABASE", Qt::CaseInsensitive)){
          try{
@@ -164,7 +165,7 @@ void MainWindow::displayDB()
     ui->treeWidget->clear();
 
     // 暂定写死根路径
-    QString path = "C:/Users/21495/Desktop/DBMS测试";
+    QString path = "../../dataDB";
     QDir rootDir(path);
 
     // 获取所有数据库文件夹

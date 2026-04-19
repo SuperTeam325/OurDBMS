@@ -443,7 +443,7 @@ DDL::Table Parser::parseCreateTable(const QString& sql,DDL::DataBase& db){
 
 DDL::DataBase Parser::paraseCreateDB(const QString& sql,QString path){
     //默认路径
-    QString Mainpath="C:/Users/21495/Desktop/DBMS测试";
+    QString Mainpath="../../dataDB";
     //重置
     tokens.clear();
     pos=0;
