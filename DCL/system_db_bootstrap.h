@@ -13,6 +13,8 @@ public:
     QString systemDbPath() const;
 
 private:
+    bool ensureRegisteredInDbConfig(QString& error) const;
+
     QString m_rootPath;
 };
 
