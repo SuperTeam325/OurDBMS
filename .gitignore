@@ -1,3 +1,12 @@
 # 构建残留
 **/CMakeLists.txt.user
 **/build/
+
+# 过程文档
+*.md
+*.txt
+
+# 数据库
+dataDB/
+
+!./README.md
