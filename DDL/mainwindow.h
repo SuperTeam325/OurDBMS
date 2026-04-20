@@ -7,6 +7,10 @@
 #include "Parser.h"
 #include <QTreeWidgetItem>
 
+namespace DCL {
+class DclFacade;
+}
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
@@ -18,7 +22,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    explicit MainWindow(DCL::DclFacade* facade, QWidget *parent = nullptr);
     ~MainWindow();
 
 private slots:
@@ -28,6 +32,7 @@ private slots:
     void on_SetPath_clicked();
 
 private:
+    DCL::DclFacade* dclFacade;
     Ui::MainWindow *ui;
     Parser p;
     DDL::DataBase db;
