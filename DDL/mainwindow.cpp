@@ -4,13 +4,20 @@
 #include "./ui_dialog.h"
 #include "Lexer.h"
 #include <QDir>
+#include "../DCL/dcl_facade.h"
 
-MainWindow::MainWindow(QWidget *parent)
+MainWindow::MainWindow(DCL::DclFacade* facade, QWidget *parent)
     : QMainWindow(parent)
+    , dclFacade(facade)
     , ui(new Ui::MainWindow)
 {
 
     ui->setupUi(this);
+    if (dclFacade && dclFacade->isLoggedIn()) {
+        setWindowTitle("MainWindow - 用户: " + dclFacade->currentSession().username);
+    } else {
+        setWindowTitle("MainWindow - 未登录");
+    }
     displayDB();
 
 }
@@ -23,6 +30,39 @@ MainWindow::~MainWindow()
 void MainWindow::on_SubmitSQL_clicked()
 {
      QString sql=ui->sqlEdit->toPlainText().trimmed();
+     if (sql.isEmpty()) {
+         return;
+     }
+
+     if (dclFacade) {
+         QString dclMessage;
+         QString dclError;
+         if (dclFacade->tryHandleSessionSql(sql, dclMessage, dclError)) {
+             if (!dclError.isEmpty()) {
+                 ui->Terminal->append("SQL执行失败：" + dclError);
+             } else {
+                 ui->Terminal->append(dclMessage);
+                 if (dclFacade->isLoggedIn()) {
+                     setWindowTitle("MainWindow - 用户: " + dclFacade->currentSession().username);
+                 } else {
+                     setWindowTitle("MainWindow - 未登录");
+                 }
+             }
+             ui->sqlEdit->clear();
+             return;
+         }
+     }
+
+     if (!dclFacade || !dclFacade->isLoggedIn()) {
+         ui->Terminal->append("SQL执行失败：未登录");
+         return;
+     }
+
+     QString authError;
+     if (!dclFacade->authorizeSql(sql, authError)) {
+         ui->Terminal->append("SQL执行失败：" + authError);
+         return;
+     }
 
     //大小写不敏感
      if(sql.startsWith("CREATE DATABASE", Qt::CaseInsensitive)){
@@ -42,6 +82,7 @@ void MainWindow::on_SubmitSQL_clicked()
          try{
              //进入的db只拿到路径和名字信息
              p.paraseUSEDB(sql,db);
+             dclFacade->setCurrentDatabase(db.name);
              ui->Terminal->append("切换成功");
              ui->sqlEdit->clear();
 
@@ -127,16 +168,6 @@ void MainWindow::on_SubmitSQL_clicked()
            ui->Terminal->append("SQL执行失败：" +QString(e.what()));
        }
     }
-
-    try{
-        QString path="C:/Users/21495/Desktop/DBMS测试/test/u/u.tbs";
-         DDL::loadSchema(path);
-
-     }catch(const std::invalid_argument& e) {
-         ui->Terminal->append("SQL执行失败：" +QString(e.what()));
-     }
-
-
 }
 
 

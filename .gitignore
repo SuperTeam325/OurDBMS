@@ -6,4 +6,7 @@
 *.md
 *.txt
 
+# 数据库
+dataDB/
+
 !./README.md

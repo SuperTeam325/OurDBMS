@@ -169,11 +169,11 @@ static QStringList readFromDbs(QString &);
 // 加载：从 schema.dbs 读取所有表结构
 static Table loadSchema(const QString& path);
 
-// 保存表数据到 表名.dbf
-static void saveTableData(const Table &table, const QVector<QVector<QString>> &rows);
+// 保存表数据到 表名.dbf（dbPath 非空时写入 dbPath/表名/表名.dbf）
+static void saveTableData(const Table &table, const QVector<QVector<QString>> &rows, const QString& dbPath = "");
 
-// 加载表数据从 表名.dbf
-static QVector<QVector<QString>> loadTableData(const Table &table);
+// 加载表数据从 表名.dbf（dbPath 非空时读取 dbPath/表名/表名.dbf）
+static QVector<QVector<QString>> loadTableData(const Table &table, const QString& dbPath = "");
 };
 
 #endif // DDL_H

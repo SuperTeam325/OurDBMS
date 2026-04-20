@@ -226,9 +226,20 @@ QStringList DDL::readFromDbs(QString& path){
 // ==============================================
 // 保存表数据 → 表名.dbf
 // ==============================================
-void DDL::saveTableData(const DDL::Table &table, const QVector<QVector<QString>> &rows)
+void DDL::saveTableData(const DDL::Table &table, const QVector<QVector<QString>> &rows, const QString& dbPath)
 {
-    QString fileName = table.name + ".dbf";
+    QString fileName;
+    if (dbPath.isEmpty()) {
+        fileName = table.name + ".dbf";
+    } else {
+        const QString tablePath = dbPath + "/" + table.name;
+        QDir dir;
+        if (!dir.exists(tablePath)) {
+            dir.mkpath(tablePath);
+        }
+        fileName = tablePath + "/" + table.name + ".dbf";
+    }
+
     QFile file(fileName);
     if (!file.open(QIODevice::WriteOnly)) return;
 
@@ -247,10 +258,16 @@ void DDL::saveTableData(const DDL::Table &table, const QVector<QVector<QString>>
 // ==============================================
 // 加载表数据 ← 表名.dbf
 // ==============================================
-QVector<QVector<QString>> DDL::loadTableData(const DDL::Table &table)
+QVector<QVector<QString>> DDL::loadTableData(const DDL::Table &table, const QString& dbPath)
 {
     QVector<QVector<QString>> rows;
-    QString fileName = table.name + ".dbf";
+    QString fileName;
+    if (dbPath.isEmpty()) {
+        fileName = table.name + ".dbf";
+    } else {
+        fileName = dbPath + "/" + table.name + "/" + table.name + ".dbf";
+    }
+
     QFile file(fileName);
     if (!file.open(QIODevice::ReadOnly)) return rows;
 
