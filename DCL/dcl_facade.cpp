@@ -76,6 +76,7 @@ bool DclFacade::tryHandleSessionSql(const QString& sql, QString& message, QStrin
     QRegularExpressionMatch loginFullMatch = loginFullRe.match(normalized);
     QRegularExpressionMatch logoutMatch = logoutRe.match(normalized);
 
+    // sql语句与logout 语句匹配
     if (logoutMatch.hasMatch()) {
         if (!isLoggedIn()) {
             error = "当前没有已登录用户";
@@ -86,13 +87,23 @@ bool DclFacade::tryHandleSessionSql(const QString& sql, QString& message, QStrin
         return true;
     }
 
+    // 尝试识别并处理登录相关语句：
+    // 1) 如果匹配完整的 login 语法（LOGIN USER ... IDENTIFIED BY ...），使用完整匹配结果。
+    // 2) 否则如果匹配简写 login 语法（LOGIN username password），使用简写匹配结果。
+    // 3) 如果既不是 logout 也不是 login，则按顺序尝试其他会话相关的 DCL 语句处理器：
+    //    CREATE USER / DROP USER / GRANT / REVOKE。每个处理器在匹配时会返回 true
+    //    并通过 message/error 通知上层结果；返回 true 表示 SQL 已被 DCL 模块消费。
     QRegularExpressionMatch activeLoginMatch;
     if (loginFullMatch.hasMatch()) {
+        // 匹配类似：LOGIN USER username IDENTIFIED BY 'password'
         activeLoginMatch = loginFullMatch;
     } else if (loginSimpleMatch.hasMatch()) {
+        // 匹配简写形式：LOGIN username password
         activeLoginMatch = loginSimpleMatch;
     } else {
+        // 不是 login 语句，尝试其它 DCL 会话/权限操作
         if (handleCreateUserSql(normalized, message, error)) {
+            // CREATE USER 已被处理（成功或失败），返回 true 结束处理链
             return true;
         }
         if (handleDropUserSql(normalized, message, error)) {
@@ -104,6 +115,7 @@ bool DclFacade::tryHandleSessionSql(const QString& sql, QString& message, QStrin
         if (handleRevokeSql(normalized, message, error)) {
             return true;
         }
+        // 未匹配任何 DCL 会话语句，返回 false 让调用方继续后续处理（如授权检查 + DDL）
         return false;
     }
 

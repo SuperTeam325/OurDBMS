@@ -14,22 +14,22 @@ namespace DCL {
 class DclFacade {
 public:
     explicit DclFacade(const QString& rootPath = "../../dataDB");
-
+    // 初始化系统库
     bool initialize(QString& error);
+    
     bool login(const QString& username, const QString& password, QString& error);
     void logout();
     void setCurrentDatabase(const QString& databaseName);
 
     bool isLoggedIn() const;
     const SessionContext& currentSession() const;
-
+    // 处理dcl语句
     bool tryHandleSessionSql(const QString& sql, QString& message, QString& error);
     bool authorizeSql(const QString& sql, QString& error) const;
 
 private:
     bool parseSqlActionAndTable(const QString& sql, TableAction& action, QString& tableName) const;
     TableAction parseActionFromText(const QString& text) const;
-
     bool handleGrantSql(const QString& sql, QString& message, QString& error);
     bool handleRevokeSql(const QString& sql, QString& message, QString& error);
     bool handleCreateUserSql(const QString& sql, QString& message, QString& error);
