@@ -5,7 +5,7 @@ QList<Token> Lexer::ReadSQL(const QString& sql)
     QList<Token> tokens;
     int i = 0;
     int len = sql.length();
-
+    //# 遍历每一个字符
     while (i < len) {
         QChar c = sql[i];
 
@@ -44,7 +44,7 @@ QList<Token> Lexer::ReadSQL(const QString& sql)
                 i++;
             }
             QString word = sql.mid(start, i - start);
-            TokenType type = checkKeyword(word);
+            TokenType type = checkKeyword(word); // 将单词转换为 token 类型
             tokens.append(Token(type, word));
             continue;
         }
@@ -81,10 +81,12 @@ TokenType Lexer::checkKeyword(const QString& word)
     if(upper == "ADD")  return TOKEN_ADD;
     if(upper == "MODIFY")  return TOKEN_MODIFY;
     if(upper == "COLUMN") return TOKEN_COLUMN;
+    //# DDL 类型关键字
     if (upper == "INT") return TOKEN_INT;
     if (upper == "FLOAT") return TOKEN_FLOAT;
     if (upper == "CHAR") return TOKEN_CHAR;
     if (upper == "VARCHAR") return TOKEN_VARCHAR;
+    //# 数据类型关键字
     if (upper == "NOT") return TOKEN_NOT;
     if (upper == "NULL") return TOKEN_NULL;
     if (upper == "PRIMARY") return TOKEN_PRIMARY;
@@ -94,7 +96,7 @@ TokenType Lexer::checkKeyword(const QString& word)
     if (upper == "AUTO_INCREMENT") return TOKEN_AUTO_INCREMENT;
     if(upper=="FOREIGN") return TOKEN_FOREIGN;
     if(upper=="REFERENCES") return TOKEN_REFERENCES;
-
+    //# 约束关键字
     if (upper == "CONSTRAINT") return TOKEN_CONSTRAINT;
 
     return TOKEN_IDENTIFIER;

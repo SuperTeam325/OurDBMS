@@ -13,7 +13,7 @@ enum TokenType {
     TOKEN_DATABASE, //数据库名
     TOKEN_TABLE,
     TOKEN_ADD,
-    TOKEN_MODIFY,
+    TOKEN_MODIFY, // modify 关键字
     TOKEN_COLUMN,
     //类型
     TOKEN_INT,
@@ -21,7 +21,7 @@ enum TokenType {
     TOKEN_CHAR,
     TOKEN_VARCHAR,
     //名字
-    TOKEN_IDENTIFIER,
+    TOKEN_IDENTIFIER, //# 名字标识符
     //标点
     TOKEN_LPAREN,    // (
     TOKEN_RPAREN,    // )
@@ -43,9 +43,10 @@ enum TokenType {
     TOKEN_EOF
 };
 
+// Token 结构体
 struct Token {
     TokenType type;
-    QString text;
+    QString text; // 保存token的文本信息
     Token(TokenType t = TOKEN_EOF, QString tx = "") : type(t), text(tx) {}
 };
 
@@ -54,7 +55,7 @@ public:
     QList<Token> ReadSQL(const QString& sql);  // 分词主函数
 
 private:
-    TokenType checkKeyword(const QString& word); // 判断是不是关键字
+    TokenType checkKeyword(const QString& word); //# 判断关键字类型
     bool isNumber(const QString& word);          // 判断是不是数字
 };
 

@@ -186,6 +186,7 @@ void MainWindow::on_SetPath_clicked()
         QString path = dialog->ui->lineEdit->text();
         qDebug()<<"获取数据库存储路径"<<path;
         DBpath=path;
+        //# 只是切换了数据库路径，并没有刷新
     });
 
 }
@@ -195,7 +196,8 @@ void MainWindow::displayDB()
     // 清空原有内容
     ui->treeWidget->clear();
 
-    // 暂定写死根路径
+    // 已经不写死了
+    //# 数据库根目录
     QString path = "../../dataDB";
     QDir rootDir(path);
 

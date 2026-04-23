@@ -11,7 +11,7 @@
 #include "Lexer.h"
 class DDL{
 public:
-    enum class FieldType{
+    enum class FieldType{ //# 列的类型
         INT,
         CHAR,
         VARCHAR,
@@ -19,7 +19,7 @@ public:
         UNKNOWN
 };
 
-struct FieldConstraint{
+struct FieldConstraint{ //# 约束
 
     bool not_null;
     QString default_val;
@@ -28,7 +28,7 @@ struct FieldConstraint{
     bool Auto_increasement;
     bool Foreign_key;
 
-    QMap<TokenType,QString> Const_Name;
+    QMap<TokenType,QString> Const_Name; //# 键值对map
 
     FieldConstraint()
         : not_null(false),
@@ -39,7 +39,7 @@ struct FieldConstraint{
         Foreign_key(false)
     {}
 
-    QString toString() const {
+    QString toString() const { //# 重写toString方法
         QStringList cons;
 
         if (Primary_key)   cons << "PRIMARY KEY";
@@ -50,10 +50,10 @@ struct FieldConstraint{
         if (!default_val.isEmpty())
             cons << "DEFAULT " + default_val;
 
-        return cons.join(" ");
+        return cons.join(" "); //# 使用" "拼接
     }
 
-    QString toString(TokenType t) const {
+    QString toString(TokenType t) const { // 返回单个token的字符串形式
         QStringList cons;
 
         if (t==TOKEN_PRIMARY)   cons << "PRIMARY KEY";
@@ -68,10 +68,11 @@ struct FieldConstraint{
     }
 
 };
+
 struct Field{
     QString field_name;
     FieldType field_type;
-    uint16_t length;
+    uint16_t length; //# 本列数据占用的字节数
     FieldConstraint field_Constraint;
 
     Field(QString name, FieldType type, uint16_t l=0, FieldConstraint c={})
