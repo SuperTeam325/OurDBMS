@@ -34,6 +34,7 @@ void MainWindow::on_SubmitSQL_clicked()
          return;
      }
 
+    //  优先处理dcl语句  
      if (dclFacade) {
          QString dclMessage;
          QString dclError;
@@ -52,12 +53,12 @@ void MainWindow::on_SubmitSQL_clicked()
              return;
          }
      }
-
+     // 拒绝未登录用户的操作
      if (!dclFacade || !dclFacade->isLoggedIn()) {
          ui->Terminal->append("SQL执行失败：未登录");
          return;
      }
-
+     // 拒绝无权限用户的操作
      QString authError;
      if (!dclFacade->authorizeSql(sql, authError)) {
          ui->Terminal->append("SQL执行失败：" + authError);
