@@ -14,7 +14,7 @@ void DDL::saveSchema(DDL::Table& table,QString& path){
     //创建表文件夹
     QString TablePath=path+"/"+table.name;
     QDir dir;
-    if (!dir.exists(TablePath)) {
+    if (!dir.exists(TablePath)) { //# 创建表文件夹，保存
         dir.mkpath(TablePath);
     }
     //对于表的结构文件
@@ -37,10 +37,10 @@ void DDL::saveSchema(DDL::Table& table,QString& path){
             out<<(int)f.length;
 
             //NOT NULL
-           out << f.field_Constraint.not_null;
-           if (f.field_Constraint.not_null){
+            out << f.field_Constraint.not_null;
+            if (f.field_Constraint.not_null){
                 if(f.field_Constraint.Const_Name[TOKEN_NOT].isEmpty()){
-                    out << "__not_null_" + table.name + "_" + f.field_name;
+                    out << "__not_null_" + table.name + "_" + f.field_name; //# 写入约束名
                 }else{
                     out<<f.field_Constraint.Const_Name[TOKEN_NOT];
                 }

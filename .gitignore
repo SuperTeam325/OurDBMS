@@ -9,4 +9,7 @@
 # 数据库
 dataDB/
 
+.claude
+.omc
+
 !./README.md

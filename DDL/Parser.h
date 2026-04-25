@@ -22,8 +22,8 @@ private:
     DDL::Table table;
 
     QList<Token> tokens;
-    int pos;         // 当前读到第几个Token
-    Token peek();    // 看当前Token
+    int pos;         // 当前token的索引
+    Token peek();    // 看当前 Token
     int getPos(TokenType type);
     QString getText(int);
     void next();     // 下一个

@@ -13,8 +13,7 @@ namespace DCL {
 
 class DclFacade {
 public:
-    explicit DclFacade(const QString& rootPath = "../../dataDB");
-    // 初始化系统库
+    explicit DclFacade(const QString& rootPath);
     bool initialize(QString& error);
     
     bool login(const QString& username, const QString& password, QString& error);
