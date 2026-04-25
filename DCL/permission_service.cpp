@@ -37,7 +37,7 @@ bool PermissionService::ensureStorage(QString& error) const
         DDL::saveSchema(table, db.path);
     }
 
-    const QString permissionsDbfPath = sysPath + "/permissions/permissions.tbf";
+    const QString permissionsDbfPath = sysPath + "/permissions/permissions.dbf";
     QFile permissionsDbf(permissionsDbfPath);
     if (!permissionsDbf.exists()) {
         DDL::saveTableData(permissionsTable(), {}, sysPath);

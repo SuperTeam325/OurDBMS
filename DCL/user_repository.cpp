@@ -39,7 +39,7 @@ bool UserRepository::ensureStorage(QString& error) const
         DDL::saveSchema(table, db.path);
     }
 
-    const QString usersDbfPath = sysPath + "/users/users.tbf";
+    const QString usersDbfPath = sysPath + "/users/users.dbf";
     QFile usersDbf(usersDbfPath);
     if (!usersDbf.exists()) {
         DDL::saveTableData(usersTable(), {}, sysPath);
