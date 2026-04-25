@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include <QApplication>
 #include <QMessageBox>
+#include <QDir>
 #include "../DCL/dcl_facade.h"
 #include "../DCL/logindialog.h"
 
@@ -8,7 +9,8 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    DCL::DclFacade facade;
+    QString rootPath = QDir::cleanPath(QCoreApplication::applicationDirPath() + "/../../dataDB");
+    DCL::DclFacade facade(rootPath);
     QString initError;
     if (!facade.initialize(initError)) {
         QMessageBox::critical(nullptr, "系统初始化失败", initError);
