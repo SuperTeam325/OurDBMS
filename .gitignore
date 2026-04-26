@@ -13,3 +13,7 @@ dataDB/
 .omc
 
 !./README.md
+!DML功能说明文档.md
+!DML模块整合说明文档.md
+!DCL_支持语法说明.md
+!CMakeLists.txt
