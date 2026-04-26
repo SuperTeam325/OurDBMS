@@ -2,6 +2,7 @@
 #include "./ui_mainwindow.h"
 #include "dialog.h"
 #include "./ui_dialog.h"
+#include "Log.h"
 #include "Lexer.h"
 #include <QDir>
 #include <QMenu>
@@ -103,11 +104,16 @@ void MainWindow::on_SubmitSQL_clicked()
              //进入的db只拿到路径和名字信息
              p.paraseUSEDB(sql,db);
              dclFacade->setCurrentDatabase(db.name);
-             ui->Terminal->append("切换成功");
+             ui->Terminal->append(QString("切换成功,当前数据库：%1").arg(db.name));
+             //写入日志
+             Log::writeToLog(db.path,dclFacade->currentSession().username,sql);
+
              ui->sqlEdit->clear();
 
          }catch (const std::invalid_argument& e) {
              ui->Terminal->append("SQL执行失败：" +QString(e.what()));
+             //写入日志
+             Log::writeToLog(db.path,dclFacade->currentSession().username,QString(e.what()));
          }
 
      }
@@ -126,12 +132,17 @@ void MainWindow::on_SubmitSQL_clicked()
 
             DDL::saveSchema(t,db.path);
             ui->Terminal->append("建表成功");
+            //写入日志
+            Log::writeToLog(db.path,dclFacade->currentSession().username,sql);
+
             //刷新显示
              refreshDBTreeWithState();
 
             ui->sqlEdit->clear();
         }catch (const std::invalid_argument& e) {
             ui->Terminal->append("SQL执行失败：" +QString(e.what()));
+            //写入日志
+            Log::writeToLog(db.path,dclFacade->currentSession().username,QString(e.what()));
             }
     }else if(sql.startsWith("ALTER TABLE", Qt::CaseInsensitive)){
 
@@ -146,14 +157,16 @@ void MainWindow::on_SubmitSQL_clicked()
 
 
                 p.paraseAddCS(sql,db);
-                ui->Terminal->append("添加成功");
+                ui->Terminal->append("添加约束成功");
+                Log::writeToLog(db.path,dclFacade->currentSession().username,sql);
                 //刷新显示
                 refreshDBTreeWithState();
                 ui->sqlEdit->clear();
             }
             else {
                 p.paraseAddCol(sql,db);
-                ui->Terminal->append("添加成功");
+                ui->Terminal->append("添加字段成功");
+                Log::writeToLog(db.path,dclFacade->currentSession().username,sql);
                 //刷新显示
                 refreshDBTreeWithState();
                 ui->sqlEdit->clear();
@@ -164,13 +177,17 @@ void MainWindow::on_SubmitSQL_clicked()
                 if (temp.contains("dropcolumn")) {
                     p.paraseDTableF(sql,db.path,db);
 
-                    ui->Terminal->append("删除成功");
+                    ui->Terminal->append("删除字段成功");
+                    //写入日志
+                    Log::writeToLog(db.path,dclFacade->currentSession().username,sql);
                     //刷新显示
                      refreshDBTreeWithState();
                     ui->sqlEdit->clear();
                 }else{
                     p.paraseDTKEY(sql,db);
-                    ui->Terminal->append("删除成功");
+                    ui->Terminal->append("删除约束成功");
+                    //写入日志
+                    Log::writeToLog(db.path,dclFacade->currentSession().username,sql);
                     //刷新显示
                      refreshDBTreeWithState();
                     ui->sqlEdit->clear();
@@ -179,6 +196,8 @@ void MainWindow::on_SubmitSQL_clicked()
             if(temp.contains("modify")){
                 p.paraseModifyCol(sql,db);
                 ui->Terminal->append("修改成功");
+                //写入日志
+                Log::writeToLog(db.path,dclFacade->currentSession().username,sql);
                 //刷新显示
                 refreshDBTreeWithState();
                 ui->sqlEdit->clear();
@@ -187,6 +206,8 @@ void MainWindow::on_SubmitSQL_clicked()
             if(temp.contains("change")){
                 p.paraseChangeCol(sql,db);
                 ui->Terminal->append("修改成功");
+                //写入日志
+                Log::writeToLog(db.path,dclFacade->currentSession().username,sql);
                 //刷新显示
                 refreshDBTreeWithState();
                 ui->sqlEdit->clear();
@@ -194,17 +215,23 @@ void MainWindow::on_SubmitSQL_clicked()
 
        }catch (const std::invalid_argument& e) {
            ui->Terminal->append("SQL执行失败：" +QString(e.what()));
+           //写入日志
+           Log::writeToLog(db.path,dclFacade->currentSession().username,QString(e.what()));
        }
     }else if(sql.startsWith("DROP TABLE", Qt::CaseInsensitive)){
 
         try{
             p.paraseDropTable(sql,db);
             ui->Terminal->append("删除成功");
+            //写入日志
+            Log::writeToLog(db.path,dclFacade->currentSession().username,sql);
             //刷新显示
             refreshDBTreeWithState();
             ui->sqlEdit->clear();
         }catch (const std::invalid_argument& e) {
             ui->Terminal->append("SQL执行失败：" +QString(e.what()));
+            //写入日志
+            Log::writeToLog(db.path,dclFacade->currentSession().username,QString(e.what()));
         }
       //===========
       //DML模块
@@ -215,19 +242,24 @@ void MainWindow::on_SubmitSQL_clicked()
             InsertStatement stmt = p.parseInsert(sql);
             int affected = DML::executeInsert(db, stmt);
             ui->Terminal->append(QString("插入成功，影响 %1 行").arg(affected));
-
+            //写入日志
+            Log::writeToLog(db.path,dclFacade->currentSession().username,sql);
         } catch (const std::invalid_argument& e) {
             ui->Terminal->append(QString("SQL语句执行失败：%1").arg(e.what()));
-
+            //写入日志
+            Log::writeToLog(db.path,dclFacade->currentSession().username,QString("SQL语句执行失败：%1").arg(e.what()));
         }
     } else if (sql.startsWith("UPDATE", Qt::CaseInsensitive)) {
         try {
             UpdateStatement stmt = p.parseUpdate(sql);
             int affected = DML::executeUpdate(db, stmt);
             ui->Terminal->append(QString("更新成功，影响 %1 行").arg(affected));
-
+            //写入日志
+            Log::writeToLog(db.path,dclFacade->currentSession().username,sql);
         } catch (const std::invalid_argument& e) {
             ui->Terminal->append(QString( "SQL语句执行失败：").arg(e.what()));
+            //写入日志
+            Log::writeToLog(db.path,dclFacade->currentSession().username,QString("SQL语句执行失败：%1").arg(e.what()));
 
         }
     } else if (sql.startsWith("DELETE", Qt::CaseInsensitive)) {
@@ -235,9 +267,12 @@ void MainWindow::on_SubmitSQL_clicked()
             DeleteStatement stmt = p.parseDelete(sql);
             int affected = DML::executeDelete(db, stmt);
             ui->Terminal->append(QString("删除成功，影响 %1 行").arg(affected));
-
+            //写入日志
+            Log::writeToLog(db.path,dclFacade->currentSession().username,sql);
         } catch (const std::invalid_argument& e) {
             ui->Terminal->append(QString("SQL语句执行失败：%1").arg(e.what()));
+            //写入日志
+            Log::writeToLog(db.path,dclFacade->currentSession().username,QString("SQL语句执行失败：%1").arg(e.what()));
 
         }
     } else if (sql.startsWith("SELECT", Qt::CaseInsensitive)) {
@@ -245,9 +280,12 @@ void MainWindow::on_SubmitSQL_clicked()
             SelectStatement stmt = p.parseSelect(sql);
             QString result = DML::executeSelect(db, stmt);
             ui->Terminal->append(result);
-
+            //写入日志
+            Log::writeToLog(db.path,dclFacade->currentSession().username,sql);
         } catch (const std::invalid_argument& e) {
             ui->Terminal->append(QString("SQL语句执行失败：%1").arg(e.what()));
+            //写入日志
+            Log::writeToLog(db.path,dclFacade->currentSession().username,QString("SQL语句执行失败：%1").arg(e.what()));
 
         }
     }
@@ -701,37 +739,34 @@ void MainWindow::deleteTableMenu()
     }
 }
 
-// ============================
 // 查看表数据
-// ============================
 void MainWindow::viewTableDataMenu()
 {
     QTreeWidgetItem *item = ui->treeWidget->currentItem();
     if (!item) return;
 
-    // 1. 获取表信息 + 数据库信息
+    // 获取表信息 + 数据库信息
     QString tableName = item->text(0);
     QString dbName = item->parent()->parent()->text(0);
     QString dbPath = p.getDbPathByName(dbName);
 
-    // 2. 加载表结构
+    //  加载表结构
     QString tbsPath = dbPath + "/" + tableName + "/" + tableName + ".tbs";
     DDL::Table table = DDL::loadSchema(tbsPath);
 
-    // 3. 构造数据库对象（给loadTableRows用）
+    // 构造数据库对象（给loadTableRows用）
     DDL::DataBase db;
     db.name = dbName;
     db.path = dbPath;
 
-    // 4. ✅ 核心：直接调用你写的 loadTableRows 加载数据（完全复用）
+    //读取数据文件
     QVector<QVector<QString>> tableData = DML::loadTableRows(db, table);
 
-    // ======================
-    // 页面：stackedWidget 第1页
-    // ======================
+
+    // stackedWidget 第1页
     QWidget *page = ui->stackedWidget->widget(1);
 
-    // 清空旧布局/控件
+    // 清空旧布局控件
     if (page->layout() != nullptr) {
         QLayoutItem *child;
         while ((child = page->layout()->takeAt(0)) != nullptr) {
@@ -746,9 +781,8 @@ void MainWindow::viewTableDataMenu()
     mainLayout->setContentsMargins(20, 20, 20, 30);
     mainLayout->setSpacing(15);
 
-    // ======================
+
     // 创建数据表格
-    // ======================
     QTableWidget *tw = new QTableWidget;
     int columnCount = table.fields.size();    // 列数 = 字段个数
     int rowCount = tableData.size();          // 行数 = 数据行数
@@ -791,9 +825,7 @@ void MainWindow::viewTableDataMenu()
     tw->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     tw->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
-    // ======================
-    // ✅ 填充表数据（完全用loadTableRows的结果）
-    // ======================
+    //  填充表数据
     for (int row = 0; row < tableData.size(); row++) {
         const QVector<QString>& rowData = tableData[row];
         for (int col = 0; col < rowData.size(); col++) {
@@ -809,9 +841,8 @@ void MainWindow::viewTableDataMenu()
         tw->item(0, 0)->setTextAlignment(Qt::AlignCenter);
     }
 
-    // ======================
+
     // 返回按钮
-    // ======================
     QPushButton *btnBack = new QPushButton("返回主页");
     btnBack->setMinimumWidth(200);
     btnBack->setStyleSheet(R"(
@@ -829,7 +860,6 @@ void MainWindow::viewTableDataMenu()
     mainLayout->addWidget(tw);
     mainLayout->addWidget(btnBack, 0, Qt::AlignCenter);
 
-    // 切换到第1页（你要的位置）
     ui->stackedWidget->setCurrentIndex(1);
 }
 // 修改表（待实现）

@@ -496,6 +496,12 @@ DDL::DataBase Parser::paraseCreateDB(const QString& sql,QString path){
     if (!dir.exists(finalPath)) {
         dir.mkpath(finalPath);
     }
+    //日志文件夹
+    QString logPath = finalPath + "/logs";
+    QDir dir2(logPath);
+    if (!dir2.exists()) {
+        dir2.mkpath(logPath);
+    }
 
     //同时生成一个对于的同名二进制文件来存储数据库的表结构信息
     QString dbsPath=finalPath+"/"+db.name+".dbs";
@@ -506,7 +512,7 @@ DDL::DataBase Parser::paraseCreateDB(const QString& sql,QString path){
         f.remove();
     }
 
-    // 以【只写 + 二进制】模式打开 → 自动创建空文件
+    // 以模式打开 → 自动创建空文件
     if (f.open(QIODevice::WriteOnly)) {
         // 什么都不用写！打开再关闭就是空文件
         f.close();

@@ -46,7 +46,7 @@ private slots:
 
 
 private:
-    DCL::DclFacade* dclFacade;
+
     Ui::MainWindow *ui;
     Parser p;
     DDL::DataBase db;
@@ -55,6 +55,7 @@ private:
     //DCL
     DCL::UserRepository userReposity;
     DCL::PermissionService userPermission;
+    DCL::DclFacade* dclFacade;
 
     //数据库文件路径
     QString DBpath;
