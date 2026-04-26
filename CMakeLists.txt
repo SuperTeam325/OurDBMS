@@ -94,3 +94,6 @@ install(TARGETS DBMS
 if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(DBMS)
 endif()
+
+# Automated SQL test tool — builds together with the main project
+add_subdirectory(test)

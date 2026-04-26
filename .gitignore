@@ -8,6 +8,10 @@
 
 # 数据库
 dataDB/
+db_config.json
+
+# 测试工具
+!test/README.md
 
 .claude
 .omc
