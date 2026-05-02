@@ -44,12 +44,13 @@ public:
     // SELECT * 执行（全表查询）
     static QString executeSelect(const DDL::DataBase& db, const SelectStatement& stmt);
 
+    // 加载表数据
+    static QVector<QVector<QString>> loadTableRows(const DDL::DataBase& db, const DDL::Table& table);
+
 private:
     // 获取表数据文件路径：db.path/tableName/tableName.tbf
     static QString getTableDataFilePath(const DDL::DataBase& db, const QString& tableName);
 
-    // 加载表数据
-    static QVector<QVector<QString>> loadTableRows(const DDL::DataBase& db, const DDL::Table& table);
 
     // 保存表数据
     static void saveTableRows(const DDL::DataBase& db, const DDL::Table& table, const QVector<QVector<QString>>& rows);

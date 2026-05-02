@@ -19,7 +19,7 @@ void SessionManager::logout()
 
 void SessionManager::setCurrentDatabase(const QString& databaseName)
 {
-    m_session.currentDatabase = databaseName;
+    m_session.currentDatabase = databaseName.trimmed().toLower();
 }
 
 const SessionContext& SessionManager::currentSession() const

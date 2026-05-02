@@ -30,7 +30,6 @@ void DDL::saveSchema(DDL::Table& table,QString& path){
 
     QString empty_name="";
     //表字段信息
-    //for(QMap<QString,Table>::const_iterator it=db.tables.begin();it!=db.tables.end();it++){
         for(auto f:table.fields){
             out<<f.field_name;
             out<<(int)f.field_type; //枚举类型转为（int）才能正确写入文件
@@ -104,20 +103,15 @@ void DDL::saveSchema(DDL::Table& table,QString& path){
             if (f.field_Constraint.Foreign_key){
                 if(f.field_Constraint.Const_Name[TOKEN_FOREIGN].isEmpty()){
                     out << "__Foreign_" + table.name + "_" + f.field_name;
+
                 }else{
                     out<<f.field_Constraint.Const_Name[TOKEN_FOREIGN];
                 }
-                // 保存外键引用信息
-                out << f.field_Constraint.ref_table;
-                out << f.field_Constraint.ref_field;
             }else{
-                out << empty_name;
                 out << empty_name;
             }
 
         }
-
-   // }
     file.close();
 }
 
@@ -125,7 +119,7 @@ void DDL::saveSchema(DDL::Table& table,QString& path){
 //读取表结构
 DDL::Table DDL::loadSchema(const QString& path)
 {
-    qDebug()<<"当前读取文件"<<path;
+    //qDebug()<<"当前读取文件"<<path;
 
     QString TablePath=path;
     Table table{};
@@ -143,8 +137,8 @@ DDL::Table DDL::loadSchema(const QString& path)
         int fieldsCount;
         in>>fieldsCount;
 
-        qDebug()<<"表名:"+table.name;
-        qDebug()<<"字段个数"+QString::number(fieldsCount);
+       /* qDebug()<<"表名:"+table.name;
+        qDebug()<<"字段个数"+QString::number(fieldsCount);*/
 
         for(int j=0;j<fieldsCount;j++){
             FieldConstraint fc;
@@ -174,20 +168,10 @@ DDL::Table DDL::loadSchema(const QString& path)
             in >> fc.Foreign_key;
             in >> fc.Const_Name[TOKEN_FOREIGN];
 
-            // 加载外键引用信息
-            if (fc.Foreign_key) {
-                in >> fc.ref_table;
-                in >> fc.ref_field;
-            } else {
-                QString dummy1, dummy2;
-                in >> dummy1;
-                in >> dummy2;
-            }
-
             Field f(name,(FieldType)type,(uint16_t)len,fc);
             table.fields.append(f);
 
-            qDebug()<<"字段名:"+f.field_name;
+            /*qDebug()<<"字段名:"+f.field_name;
             qDebug()<<"字段类型:"+DDL::fieldTypeToString(f.field_type);
             qDebug()<<"字段长度:"+QString::number(f.length);
             qDebug()<<"字段约束:"+f.field_Constraint.toString();
@@ -196,7 +180,7 @@ DDL::Table DDL::loadSchema(const QString& path)
                 if(!f.field_Constraint.Const_Name[kt].isEmpty()){
                     qDebug()<<"字段约束名:"+f.field_Constraint.Const_Name[kt];
                 }
-            }
+            }*/
 
         }
       //  db.tables[table.name]=table;
@@ -208,26 +192,14 @@ DDL::Table DDL::loadSchema(const QString& path)
 void DDL::writeToDbs(DataBase& db,Table& t){
     QString path=db.path+"/"+db.name+".dbs";
     QFile f(path);
-
-    // 先检查文件是否存在
-    if (!f.exists()) {
-        // 文件不存在，使用 WriteOnly 创建并写入
-        if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-            qDebug()<<"创建DBS文件失败:"<<path;
-            return;
-        }
-        qDebug()<<"新建DBS文件:"<<path;
-    } else {
-        // 文件已存在，使用 Append 追加模式
-        if (!f.open(QIODevice::Append)) {
-            qDebug()<<"追加DBS文件失败:"<<path;
-            return;
-        }
-        qDebug()<<"追加到DBS文件:"<<path;
+    //追加模式
+    if (!f.open(QIODevice::Append)) {
+        qDebug()<<"写入DBS失败";
+        return;
     }
+    qDebug()<<"创建的dbs名字"+path;
 
     QDataStream out(&f);
-    out.setVersion(QDataStream::Qt_5_15);
     out<<t.name;
     f.close();
 }
@@ -249,13 +221,51 @@ QStringList DDL::readFromDbs(QString& path){
 }
 
 // ==============================================
-// 加载表数据 ← 表名.tbf
-// 路径格式：dbPath/表名/表名.tbf
+// 保存表数据 → 表名.tbf
 // ==============================================
-QVector<QVector<QString>> DDL::loadTableData(const DDL::Table &table, const QString &dbPath)
+bool DDL::saveTableData(const DDL::Table &table, const QVector<QVector<QString>> &rows, const QString& dbPath)
+{
+    QString fileName;
+    if (dbPath.isEmpty()) {
+        fileName = table.name + ".tbf";
+    } else {
+        const QString tablePath = dbPath + "/" + table.name;
+        QDir dir;
+        if (!dir.exists(tablePath)) {
+            dir.mkpath(tablePath);
+        }
+        fileName = tablePath + "/" + table.name + ".tbf";
+    }
+
+    QFile file(fileName);
+    if (!file.open(QIODevice::WriteOnly)) {
+        qDebug() << "saveTableData: 无法打开文件" << fileName;
+        return false;
+    }
+
+    QDataStream out(&file);
+    out << (int)rows.size();
+
+    for (const auto &row : rows) {
+        for (const QString &val : row) {
+            out << val;
+        }
+    }
+
+    file.close();
+    return true;
+}
+
+// 加载表数据 ← 表名.tbf
+QVector<QVector<QString>> DDL::loadTableData(const DDL::Table &table, const QString& dbPath)
 {
     QVector<QVector<QString>> rows;
-    QString fileName = dbPath + "/" + table.name + "/" + table.name + ".tbf";
+    QString fileName;
+    if (dbPath.isEmpty()) {
+        fileName = table.name + ".tbf";
+    } else {
+        fileName = dbPath + "/" + table.name + "/" + table.name + ".tbf";
+    }
 
     QFile file(fileName);
     if (!file.open(QIODevice::ReadOnly)) return rows;

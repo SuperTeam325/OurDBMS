@@ -14,6 +14,8 @@ static bool tableExists(const DDL::DataBase& db, const QString& tableName);
 // ==============================================
 QString DML::getTableDataFilePath(const DDL::DataBase& db, const QString& tableName)
 {
+
+    qDebug()<<"表路径"<<db.path + "/" + tableName + "/" + tableName + ".tbf";
     return db.path + "/" + tableName + "/" + tableName + ".tbf";
 }
 
@@ -321,6 +323,7 @@ QVector<QString> DML::buildFullRow(const DDL::Table& table, const QVector<QStrin
 static bool tableExists(const DDL::DataBase& db, const QString& tableName)
 {
     QString schemaPath = db.path + "/" + tableName + "/" + tableName + ".tbs";
+    qDebug()<<"表文件路径"<<db.path;
     QFile file(schemaPath);
     return file.exists();
 }

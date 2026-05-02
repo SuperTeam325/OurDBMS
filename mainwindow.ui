@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1322</width>
-    <height>976</height>
+    <width>1376</width>
+    <height>961</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,8 +18,8 @@
     <property name="geometry">
      <rect>
       <x>-20</x>
-      <y>-10</y>
-      <width>1351</width>
+      <y>0</y>
+      <width>1391</width>
       <height>941</height>
      </rect>
     </property>
@@ -185,6 +185,25 @@
        </property>
       </column>
      </widget>
+     <widget class="QLabel" name="currentUserTabel">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>0</y>
+        <width>131</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>当前用户:</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="page_3"/>
     <widget class="QWidget" name="page_2"/>
@@ -195,7 +214,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1322</width>
+     <width>1376</width>
      <height>25</height>
     </rect>
    </property>

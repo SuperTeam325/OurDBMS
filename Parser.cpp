@@ -53,7 +53,7 @@ void Parser::match(TokenType type){
 //student.dbf，db_config.json这些文件来区分，避免混乱
 
 // 辅组函数，从student.dbf，db_config.json读取数据库文件地址
-QString getDbPathByName(const QString& dbName)
+QString Parser::getDbPathByName(const QString& dbName)
 {
     //  打开配置文件
     QFile file("db_config.json");
@@ -103,7 +103,7 @@ bool isTableExists(QString path, QString Tname){
 DDL::FieldType Parser::parseFieldType(const QString& typeStr){
 
 
-      QString s = typeStr.toUpper();
+    QString s = typeStr.toUpper();
     if(s=="INT")   return DDL::FieldType::INT;
     if (s == "VARCHAR")  return DDL::FieldType::VARCHAR;
     if (s == "CHAR")     return DDL::FieldType::CHAR;
@@ -178,8 +178,6 @@ QString Parser::hasForeign(DDL::Table& table,DDL::DataBase& db){
 
         //确认可以是外键
         table.fields[index].field_Constraint.Foreign_key=true;
-        table.fields[index].field_Constraint.ref_table=Tname;  // 保存被引用表名
-        table.fields[index].field_Constraint.ref_field=fN;     // 保存被引用字段名
         next();
         match(TOKEN_RPAREN);
         return fN;
@@ -418,54 +416,6 @@ DDL::Table Parser::parseCreateTable(const QString& sql,DDL::DataBase& db){
             }else if(t.type==TOKEN_AUTO_INCREMENT){
                 next();
                 field_Constraint.Auto_increasement=true;
-            }else if(t.type==TOKEN_FOREIGN){
-                // 行内 FOREIGN KEY 语法：FOREIGN KEY REFERENCES ref_table(ref_field)
-                next(); // consume FOREIGN
-                match(TOKEN_KEY);
-                match(TOKEN_REFERENCES);
-
-                // 获取被引用表名
-                if(peek().type!=TOKEN_IDENTIFIER){
-                    throw std::invalid_argument(QString("语法错误: 期望表名 near %1").arg(peek().text).toStdString());
-                }
-                QString refTableName = peek().text;
-                next();
-
-                // 检查被引用表是否存在
-                QString dbDbsPath = db.path+"/"+db.name+".dbs";
-                QStringList tableList = DDL::readFromDbs(dbDbsPath);
-                if(!tableList.contains(refTableName)){
-                    throw std::invalid_argument(QString("语法错误: 不存在被引用的表 %1").arg(refTableName).toStdString());
-                }
-
-                // 读取被引用字段
-                match(TOKEN_LPAREN);
-                if(peek().type!=TOKEN_IDENTIFIER){
-                    throw std::invalid_argument(QString("语法错误: 期望字段名 near %1").arg(peek().text).toStdString());
-                }
-                QString refFieldName = peek().text;
-                next();
-                match(TOKEN_RPAREN);
-
-                // 验证被引用表的主键字段存在
-                QString refSchemaPath = db.path + "/" + refTableName + "/" + refTableName + ".tbs";
-                DDL::Table refTable = DDL::loadSchema(refSchemaPath);
-                if(!refTable.hasField(refFieldName)){
-                    throw std::invalid_argument(QString("语法错误: 被引用表 %1 中不存在字段 %2").arg(refTableName).arg(refFieldName).toStdString());
-                }
-                int refFieldIdx = refTable.getFieldIndex(refFieldName);
-                if(!refTable.fields[refFieldIdx].field_Constraint.Primary_key){
-                    throw std::invalid_argument(QString("语法错误: 被引用字段 %1.%2 必须为主键").arg(refTableName).arg(refFieldName).toStdString());
-                }
-                // 验证字段类型匹配
-                if(refTable.fields[refFieldIdx].field_type != field_type){
-                    throw std::invalid_argument(QString("语法错误: 外键字段类型与被引用字段类型不匹配").toStdString());
-                }
-
-                // 设置外键约束
-                field_Constraint.Foreign_key = true;
-                field_Constraint.ref_table = refTableName;
-                field_Constraint.ref_field = refFieldName;
             }
             else{
                 break;
@@ -493,7 +443,7 @@ DDL::Table Parser::parseCreateTable(const QString& sql,DDL::DataBase& db){
 
 DDL::DataBase Parser::paraseCreateDB(const QString& sql,QString path){
     //默认路径
-    QString Mainpath="C:/Users/21495/Desktop/DBMS测试";
+    QString Mainpath= PROJECT_ROOT_DIR"/dataDB";
     //重置
     tokens.clear();
     pos=0;
@@ -546,6 +496,12 @@ DDL::DataBase Parser::paraseCreateDB(const QString& sql,QString path){
     if (!dir.exists(finalPath)) {
         dir.mkpath(finalPath);
     }
+    //日志文件夹
+    QString logPath = finalPath + "/logs";
+    QDir dir2(logPath);
+    if (!dir2.exists()) {
+        dir2.mkpath(logPath);
+    }
 
     //同时生成一个对于的同名二进制文件来存储数据库的表结构信息
     QString dbsPath=finalPath+"/"+db.name+".dbs";
@@ -556,7 +512,7 @@ DDL::DataBase Parser::paraseCreateDB(const QString& sql,QString path){
         f.remove();
     }
 
-    // 以【只写 + 二进制】模式打开 → 自动创建空文件
+    // 以模式打开 → 自动创建空文件
     if (f.open(QIODevice::WriteOnly)) {
         // 什么都不用写！打开再关闭就是空文件
         f.close();
@@ -567,6 +523,7 @@ DDL::DataBase Parser::paraseCreateDB(const QString& sql,QString path){
 //操作USE DB
 void Parser::paraseUSEDB(const QString& sql,DDL::DataBase& db){
     QString path;
+    QString dbsPath;
 
     //重置
     tokens.clear();
@@ -585,7 +542,6 @@ void Parser::paraseUSEDB(const QString& sql,DDL::DataBase& db){
         throw::std::invalid_argument(QString("语法错误，near %1").arg(peek().type).toStdString());
     }
     match(TOKEN_SEMICOLON);
-
 
     db.path=path;
 }
@@ -904,7 +860,7 @@ void Parser::paraseAddCol(const QString &sql,DDL::DataBase& db){
     DDL::saveSchema(table,db.path);
 
 }
-//MODIFY COLUMN age INT NOT NULL
+//MODIFY age INT NOT NULL
 void Parser:: paraseModifyCol(const QString &sql,DDL::DataBase& db){
 
     if(db.path.isEmpty()){
@@ -950,7 +906,7 @@ void Parser:: paraseModifyCol(const QString &sql,DDL::DataBase& db){
 
         if(peek().type==TOKEN_IDENTIFIER){
             if(!table.hasField(peek().text)){
-                throw std::invalid_argument("失败，字段不存在！");
+                throw std::invalid_argument(QString("失败，字段不存在:%1！").arg(peek().text).toStdString());
             }else{
                 index=table.getFieldIndex(peek().text);
                 table.fields[index].field_name=peek().text;
@@ -962,25 +918,23 @@ void Parser:: paraseModifyCol(const QString &sql,DDL::DataBase& db){
 
 
         field_type=parseFieldType(peek().text);
-        table.fields[index].field_type=field_type;
 
          if(field_type==DDL::FieldType::UNKNOWN){
-            throw std::invalid_argument(QString("暂时不支持该字段类型%1").arg(peek().text).toStdString());
-        }else{
 
-        }
-
-        if(peek().type==TOKEN_CHAR || peek().type==TOKEN_VARCHAR){
-            next();
-            match(TOKEN_LPAREN);
-            table.fields[index].length = (uint16_t)peek().text.toUShort();
-            match(TOKEN_NUMBER);
-            match(TOKEN_RPAREN);
-            qDebug()<<"到这了";
-        }else{
-            next();
-        }
-
+            //throw std::invalid_argument(QString("暂时不支持该字段类型%1").arg(peek().text).toStdString());
+         }else{
+              table.fields[index].field_type=field_type;
+             if(peek().type==TOKEN_CHAR || peek().type==TOKEN_VARCHAR){
+                 next();
+                 match(TOKEN_LPAREN);
+                 table.fields[index].length = (uint16_t)peek().text.toUShort();
+                 match(TOKEN_NUMBER);
+                 match(TOKEN_RPAREN);
+                 qDebug()<<"到这了";
+             }else{
+                 next();
+             }
+         }
 
         //解析字段约束
         while(true){
@@ -1118,7 +1072,7 @@ void Parser::paraseAddCS(const QString &sql,DDL::DataBase& db){
 
              }else if(t.type==TOKEN_DEFAULT){
                  next();
-                 field_Constraint.default_val=peek().text;
+                 throw std::invalid_argument(QString("语法错误不支持default: near %1").arg(peek().text).toStdString());
 
                  next();
              }else if(t.type==TOKEN_AUTO_INCREMENT){
@@ -1186,9 +1140,217 @@ void Parser::paraseAddCS(const QString &sql,DDL::DataBase& db){
     DDL::saveSchema(table,db.path);
 }
 
-// ==============================================
+/*ALTER TABLE user
+CHANGE time create_time DATETIME NOT NULL;
+
+ALTER TABLE user
+CHANGE time create_time;*/
+void Parser::paraseChangeCol(const QString &sql,DDL::DataBase& db){
+    if(db.path.isEmpty()){
+        throw::std::invalid_argument("未指定数据库");
+    }
+    //重置
+    tokens.clear();
+    pos=0;
+    tokens=le.ReadSQL(sql);
+
+    DDL::Table table{};
+
+    QString Tname;
+    QString dbPath;
+
+    match(TOKEN_ALTER);
+    match(TOKEN_TABLE);
+
+    if(peek().type==TOKEN_IDENTIFIER){
+        Tname=peek().text;
+        //检验这个数据库是否存在同名表
+        dbPath =getDbPathByName(db.name);
+        bool exists = isTableExists(dbPath+"/"+db.name+".dbs", Tname);
+        if (!exists) {
+            throw std::invalid_argument("失败，表不存在！");
+        }
+        next();
+    }else{
+        throw::std::invalid_argument(QString("语法错误缺乏表名，near %1").arg(peek().type).toStdString());
+    }
+
+
+    bool isOnePK=false;
+    table=DDL::loadSchema(dbPath+"/"+Tname+"/"+Tname+".tbs");
+    while(peek().type!=TOKEN_EOF){
+        match(TOKEN_CHANGE);
+
+        QString field_name;
+        DDL::FieldType field_type;
+        uint16_t length=0;
+        DDL::FieldConstraint field_Constraint;
+        int index=0;
+
+        if(peek().type==TOKEN_IDENTIFIER){
+            if(!table.hasField(peek().text)){
+                throw std::invalid_argument(QString("失败，字段不存在:%1！").arg(peek().text).toStdString());
+            }else{
+                index=table.getFieldIndex(peek().text);
+                table.fields[index].field_name=peek().text;
+                next();
+            }
+        }else{
+            throw::std::invalid_argument(QString("语法错误,无字段名，near %1").arg(peek().type).toStdString());
+        }
+
+        if(peek().type==TOKEN_IDENTIFIER){
+            table.fields[index].field_name=peek().text;
+            next();
+        }else{
+            throw::std::invalid_argument(QString("语法错误无新字段名，near %1").arg(peek().type).toStdString());
+        }
+
+
+        field_type=parseFieldType(peek().text);
+
+        if(field_type==DDL::FieldType::UNKNOWN){
+
+            //throw std::invalid_argument(QString("暂时不支持该字段类型%1").arg(peek().text).toStdString());
+        }else{
+            table.fields[index].field_type=field_type;
+            if(peek().type==TOKEN_CHAR || peek().type==TOKEN_VARCHAR){
+                next();
+                match(TOKEN_LPAREN);
+                table.fields[index].length = (uint16_t)peek().text.toUShort();
+                match(TOKEN_NUMBER);
+                match(TOKEN_RPAREN);
+                qDebug()<<"到这了";
+            }else{
+                next();
+            }
+        }
+
+        //解析字段约束
+        while(true){
+
+            Token t=peek();
+
+            if(t.type==TOKEN_PRIMARY){
+
+                if(!table.hasPK()){
+                    if(!isOnePK){
+                        if(!table.fields[index].field_Constraint.not_null) throw std::invalid_argument("主键必须非空");
+                        next();
+                        match(TOKEN_KEY);
+                        table.fields[index].field_Constraint.Primary_key=true;
+                        isOnePK=true;
+                    }else{
+                        throw std::invalid_argument("主键必须唯一");
+                    }
+                }else{
+                    throw std::invalid_argument("主键已存在");
+                }
+
+            }else if(t.type==TOKEN_NOT){
+                next();
+                match(TOKEN_NULL);
+                table.fields[index].field_Constraint.not_null=true;
+            }else if(t.type==TOKEN_UNIQUE){
+                next();
+                table.fields[index].field_Constraint.Unique_key=true;
+            }else if(t.type==TOKEN_DEFAULT){
+                next();
+                table.fields[index].field_Constraint.default_val=peek().text;
+                next();
+            }else if(t.type==TOKEN_AUTO_INCREMENT){
+                next();
+                table.fields[index].field_Constraint.Auto_increasement=true;
+            }
+            else{
+
+                break;
+            }
+
+        }
+
+        if(peek().type==TOKEN_COMMA){
+            next();
+            continue;
+        }else{
+            match(TOKEN_SEMICOLON);
+            continue;
+        }
+
+    }
+    DDL::saveSchema(table,db.path);
+}
+
+void Parser::paraseDropTable(const QString &sql,DDL::DataBase& db){
+
+    if(db.path.isEmpty()){
+        throw::std::invalid_argument("未指定数据库");
+    }
+    //重置
+    tokens.clear();
+    pos=0;
+    tokens=le.ReadSQL(sql);
+
+    DDL::Table table{};
+
+    QString Tname;
+    QString dbPath;
+
+    match(TOKEN_DROP);
+    match(TOKEN_TABLE);
+
+    if(peek().type==TOKEN_IDENTIFIER){
+        Tname=peek().text;
+
+        dbPath =getDbPathByName(db.name);
+        bool exists = isTableExists(dbPath+"/"+db.name+".dbs", Tname);
+        if (!exists) {
+            throw std::invalid_argument("失败，表不存在！");
+        }
+        next();
+    }else{
+        throw::std::invalid_argument(QString("语法错误缺乏表名，near %1").arg(peek().type).toStdString());
+    }
+
+    QString Tpath=dbPath+"/"+Tname;
+    QString dbsPath=db.path+"/"+db.name+".dbs";
+    //收集已存表名
+    //重置
+    db.tableNames.clear();
+    QStringList tableNames=DDL::readFromDbs(dbsPath);
+    if(!tableNames.empty()){
+        for(QString name:tableNames){
+            db.tableNames.append(name);
+        }
+    }
+    //删除表文件夹
+    QDir dir(Tpath);
+    dir.removeRecursively(); // 删除里面所有内容
+    //移除.dbs文件里的表名
+    for(int i=0 ;i<db.tableNames.size();i++){
+        if(db.tableNames[i]==Tname){
+            db.tableNames.remove(i);
+            break;
+        }
+    }
+    QFile f(dbPath+"/"+db.name+".dbs");
+    //追加模式
+    if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        qDebug()<<"写入DBS失败";
+        return;
+    }
+    QDataStream out(&f);
+    for(QString name:db.tableNames){
+        qDebug()<<"重新写入的表名:"<<name;
+       out<<name;
+    }
+    f.close();
+}
+
+
+
 // DML 解析实现
-// ==============================================
+
 
 // 解析 INSERT
 // 支持：
@@ -1523,5 +1685,3 @@ SelectStatement Parser::parseSelect(const QString& sql)
 
     return stmt;
 }
-
-
