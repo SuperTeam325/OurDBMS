@@ -21,9 +21,25 @@ add_compile_definitions(PROJECT_ROOT_DIR="${CMAKE_SOURCE_DIR}")
 
 set(PROJECT_SOURCES
     main.cpp
-    mainwindow.cpp
-    mainwindow.h
-    mainwindow.ui
+
+    # New UI
+    src/ui/MainWindow.h
+    src/ui/MainWindow.cpp
+    src/ui/DatabaseExplorer.h
+    src/ui/DatabaseExplorer.cpp
+    src/ui/SqlEditorPanel.h
+    src/ui/SqlEditorPanel.cpp
+    src/ui/ResultView.h
+    src/ui/ResultView.cpp
+    src/ui/QueryHistoryPanel.h
+    src/ui/QueryHistoryPanel.cpp
+    src/ui/SettingsDialog.h
+    src/ui/SettingsDialog.cpp
+    src/ui/AboutDialog.h
+    src/ui/AboutDialog.cpp
+
+    # Resources
+    resources/icons.qrc
 
     DDL.h
     DDL.cpp
@@ -36,7 +52,7 @@ set(PROJECT_SOURCES
     dialog.cpp
     dialog.ui
 
-    # DCL 真实路径！！！
+    # DCL
     DCL/auth_service.h
     DCL/auth_service.cpp
     DCL/dcl_facade.h
@@ -89,6 +105,7 @@ set_target_properties(DBMS PROPERTIES
     MACOS_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     MACOS_BUNDLE TRUE
     WIN32_EXECUTABLE TRUE
+    AUTOUIC_SEARCH_PATHS "${CMAKE_CURRENT_SOURCE_DIR};${CMAKE_CURRENT_SOURCE_DIR}/DCL"
 )
 
 include(GNUInstallDirs)

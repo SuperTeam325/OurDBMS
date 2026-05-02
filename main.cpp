@@ -1,9 +1,9 @@
-#include "mainwindow.h"
+#include "src/ui/MainWindow.h"
 #include <QApplication>
 #include <QMessageBox>
 #include <QDir>
-#include "../DCL/dcl_facade.h"
-#include "../DCL/logindialog.h"
+#include "DCL/dcl_facade.h"
+#include "DCL/logindialog.h"
 
 int main(int argc, char *argv[])
 {
