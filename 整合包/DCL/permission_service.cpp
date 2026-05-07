@@ -27,6 +27,13 @@ bool PermissionService::ensureStorage(QString& error) const
         dbsFile.close();
     }
 
+    //日志文件夹
+    QString logPath = dbsPath + "/logs";
+    QDir dir2(logPath);
+    if (!dir2.exists()) {
+        dir2.mkpath(logPath);
+    }
+
     QString dbsPathRef = dbsPath;
     const QStringList tableNames = DDL::readFromDbs(dbsPathRef);
     if (!tableNames.contains("permissions")) {

@@ -1,0 +1,4 @@
+[18:47:01]-admin:SQL执行失败，不存在此数据库
+[18:48:54]-admin:SQL执行失败，不存在此数据库
+[18:49:10]-admin:DROP DATABASE test;
+[18:50:09]-admin:SQL执行失败，不存在此数据库

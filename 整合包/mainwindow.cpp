@@ -10,8 +10,12 @@
 #include <QTableWidget>
 #include <QTableWidgetItem>
 #include <QVBoxLayout>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonParseError>
 #include "DML.h"
 #include "DCL/dcl_facade.h"
+#include "../DQL/DQL.h"
 
 MainWindow::MainWindow(DCL::DclFacade* facade, QWidget *parent)
     : QMainWindow(parent)
@@ -175,6 +179,7 @@ void MainWindow::on_SubmitSQL_clicked()
           }
             if(temp.contains("drop")){
                 if (temp.contains("dropcolumn")) {
+
                     p.paraseDTableF(sql,db.path,db);
 
                     ui->Terminal->append("删除字段成功");
@@ -192,6 +197,7 @@ void MainWindow::on_SubmitSQL_clicked()
                      refreshDBTreeWithState();
                     ui->sqlEdit->clear();
                 }
+
             }
             if(temp.contains("modify")){
                 p.paraseModifyCol(sql,db);
@@ -233,11 +239,30 @@ void MainWindow::on_SubmitSQL_clicked()
             //写入日志
             Log::writeToLog(db.path,dclFacade->currentSession().username,QString(e.what()));
         }
-      //===========
-      //DML模块
-      //==========
 
-    }else if (sql.startsWith("INSERT", Qt::CaseInsensitive)) {
+
+    }else if(sql.startsWith("DROP DATABASE", Qt::CaseInsensitive)){
+        try{
+            p.paraseDropDatabase(sql);
+            ui->Terminal->append("删除数据库成功");
+             //写入日志
+             QString spath=PROJECT_ROOT_DIR"/dataDB/sys";
+            Log::writeToLog(spath,dclFacade->currentSession().username,sql);
+            //刷新显示
+            refreshDBTreeWithState();
+            ui->sqlEdit->clear();
+        }catch (const std::invalid_argument& e) {
+            ui->Terminal->append("SQL执行失败：" +QString(e.what()));
+            //写入日志,删除数据库的日志写入系统库里
+            QString spath=PROJECT_ROOT_DIR"/dataDB/sys";
+            Log::writeToLog(spath,dclFacade->currentSession().username,QString(e.what()));
+        }
+
+    }
+    //===========
+    //DML模块
+    //==========
+    else if (sql.startsWith("INSERT", Qt::CaseInsensitive)) {
         try {
             InsertStatement stmt = p.parseInsert(sql);
             int affected = DML::executeInsert(db, stmt);
@@ -275,18 +300,15 @@ void MainWindow::on_SubmitSQL_clicked()
             Log::writeToLog(db.path,dclFacade->currentSession().username,QString("SQL语句执行失败：%1").arg(e.what()));
 
         }
-    } else if (sql.startsWith("SELECT", Qt::CaseInsensitive)) {
+    }
+    //DQL
+    else if (sql.startsWith("SELECT", Qt::CaseInsensitive)) {
         try {
-            SelectStatement stmt = p.parseSelect(sql);
-            QString result = DML::executeSelect(db, stmt);
+            QString result = DQL::executeQuery(db, sql);
             ui->Terminal->append(result);
-            //写入日志
-            Log::writeToLog(db.path,dclFacade->currentSession().username,sql);
-        } catch (const std::invalid_argument& e) {
-            ui->Terminal->append(QString("SQL语句执行失败：%1").arg(e.what()));
-            //写入日志
-            Log::writeToLog(db.path,dclFacade->currentSession().username,QString("SQL语句执行失败：%1").arg(e.what()));
 
+        } catch (const std::invalid_argument& e) {
+            ui->Terminal->append(QString("SQL语句执行失败：%2").arg(e.what()));
         }
     }
 
@@ -306,13 +328,12 @@ void MainWindow::on_SubmitSQL_clicked()
 
 void MainWindow::on_SetPath_clicked()
 {
-    // 1. 创建弹窗对象（父窗口设为this，自动管理内存）
+    //  创建弹窗对象（父窗口设为this，自动管理内存）
     Dialog *dialog = new Dialog(this);
 
-    // 2. 【关键】设置为非模态，主窗口可操作
+    // 非模态
     dialog->setModal(false);
 
-    // 3. 显示弹窗
     dialog->show();
 
     connect(dialog, &QDialog::accepted, this, [=]() {
@@ -324,17 +345,51 @@ void MainWindow::on_SetPath_clicked()
 }
 
 
+//获取所有数据库的根目录
+QSet<QString> getAllDbRootPaths()
+{
+    QFile file("db_config.json");
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return {};
+    }
+
+    QByteArray data = file.readAll();
+    file.close();
+
+    QJsonDocument doc = QJsonDocument::fromJson(data);
+    QJsonObject obj = doc.object();
+
+    // 存储不重复的根目录
+    QSet<QString> rootPaths;
+
+    // 遍历所有数据库路径，自动提取根目录
+    for (auto it = obj.begin(); it != obj.end(); ++it) {
+        QString dbPath = it.value().toString();
+        QString rootPath = QFileInfo(dbPath).absolutePath();
+        rootPaths.insert(rootPath);
+    }
+
+    return rootPaths;
+}
+
+
+
 //后续路径通过读取db_config.jso文件灵活识别路径
 void MainWindow::displayDB()
 {
     ui->treeWidget->clear();
-    //根目录
-    QString path = PROJECT_ROOT_DIR "/dataDB";
-    QDir rootDir(path);
+    //改进：写个循环读取数据库信息文件获取每个数据库的目录依次存到dbDirList,写一个QFileInfoLiSt数组
 
-    QFileInfoList dbDirList = rootDir.entryInfoList(
-        QDir::Dirs | QDir::NoDotAndDotDot
-        );
+    QSet<QString> paths=getAllDbRootPaths();
+    QFileInfoList AllDbDirList;
+    for(auto const p:paths){
+         QDir rootDir(p);
+         QFileInfoList dbDirList = rootDir.entryInfoList(
+            QDir::Dirs | QDir::NoDotAndDotDot
+            );
+         AllDbDirList.append(dbDirList);
+    }
+
 
     // 创建顶级分组
     QTreeWidgetItem *normalDbGroup = new QTreeWidgetItem(ui->treeWidget);
@@ -348,7 +403,7 @@ void MainWindow::displayDB()
 
 
     // 遍历所有数据库文件夹
-    for (QFileInfo dbInfo : dbDirList)
+    for (QFileInfo dbInfo : AllDbDirList)
     {
         QString dbName = dbInfo.fileName();
         QTreeWidgetItem *targetGroup;
@@ -377,6 +432,13 @@ void MainWindow::displayDB()
         for (QFileInfo tableInfo : tableDirList)
         {
             QString tableName = tableInfo.fileName();
+
+
+
+            if(tableInfo.fileName()=="logs"){
+                continue;
+            }
+
             QTreeWidgetItem *tableItem = new QTreeWidgetItem(tableGroupItem);
             tableItem->setText(0, tableName);
 
@@ -415,6 +477,7 @@ void MainWindow::displayDB()
         }
     }
     //加载用户信息
+    QString path = PROJECT_ROOT_DIR "/dataDB"; //sys固定路径
     QVector<QVector<QString>> users = DDL::loadTableData(userReposity.usersTable(),  path+"/sys");
     QVector<QVector<QString>> permission=DDL::loadTableData(userPermission.permissionsTable(), path+"/sys");
 
@@ -440,7 +503,9 @@ void MainWindow::displayDB()
 }
 
 
-// 工具1：保存所有展开节点的路径
+
+
+// 保存所有展开节点的路径
 QStringList MainWindow::saveExpandedPaths(QTreeWidgetItem *item, const QString &parentPath)
 {
     QStringList paths;
@@ -461,7 +526,7 @@ QStringList MainWindow::saveExpandedPaths(QTreeWidgetItem *item, const QString &
     return paths;
 }
 
-// 工具2：根据路径恢复展开状态
+//根据路径恢复展开状态
 void MainWindow::restoreExpandedPaths(QTreeWidgetItem *item, const QString &parentPath, const QStringList &paths)
 {
     if (!item) return;
@@ -522,6 +587,10 @@ void MainWindow::onTreeRightClicked(const QPoint &pos)
         if(item->text(0)!="sys"){
          menu.addAction("新建表", this, &MainWindow::createTableMenu);
         }
+        //管理员有权限删除数据库
+        if(dclFacade->currentSession().isAdmin){
+            menu.addAction("删除数据库", this, &MainWindow::deleteDatabase);
+        }
         menu.addSeparator();
         menu.addAction("刷新", this, &MainWindow::refreshTree);
     }
@@ -529,6 +598,7 @@ void MainWindow::onTreeRightClicked(const QPoint &pos)
 
         menu.addAction("查看表", this, &MainWindow::viewTableMenu);
         menu.addAction("查看数据", this, &MainWindow::viewTableDataMenu);
+
          if(item->parent()->parent()->text(0)!="sys"){
            menu.addAction("修改表结构", this, &MainWindow::modifyTableMenu);
            menu.addAction("删除表", this, &MainWindow::deleteTableMenu);
@@ -662,6 +732,66 @@ void MainWindow::viewTableMenu()
 
     ui->stackedWidget->setCurrentIndex(2);
 }
+
+
+//删除数据库
+void MainWindow::deleteDatabase(){
+
+
+
+    // 打开文件
+    QFile file("db_config.json");
+    if (!file.open(QIODevice::ReadWrite | QIODevice::Text)) {
+        throw::std::invalid_argument("数据库文件出错");
+    }
+
+    //解析 JSON
+    QByteArray data = file.readAll();
+    QJsonDocument doc = QJsonDocument::fromJson(data);
+    if (!doc.isObject()) {
+        file.close();
+    }
+
+    QJsonObject obj = doc.object();
+    file.close();
+
+    QTreeWidgetItem *item = ui->treeWidget->currentItem();
+
+    QString dbName=item->text(0);
+
+    auto btn = QMessageBox::question(this, "删除", "确定删除：" + dbName + "？");
+
+    if(btn == QMessageBox::Yes){
+
+        if (!obj.contains(dbName)) {
+            ui->Terminal->append("错误：这不是一个有效的数据库！");
+            return;
+        }
+
+        QString path=obj[dbName].toString();
+
+
+        obj.remove(dbName);
+        //删除文件夹
+        QDir dbDir(path);
+        if (dbDir.exists()) {
+            dbDir.removeRecursively(); // 强制删除整个文件夹
+        }
+        //重新写回文件
+        if (!file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
+            throw std::invalid_argument("写入配置文件失败");
+        }
+
+        doc.setObject(obj);
+        file.seek(0);            // 回到文件开头
+        file.write(doc.toJson());// 写入新内容
+        file.close();
+    }
+
+    refreshTree();
+
+}
+
 
 // 新建表（待实现）
 void MainWindow::createTableMenu()

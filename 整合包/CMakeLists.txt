@@ -64,6 +64,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         DML.cpp
         Log.h
         Log.cpp
+        DQL/DQL.h
+        DQL/DQL.cpp
     )
 else()
     if(ANDROID)

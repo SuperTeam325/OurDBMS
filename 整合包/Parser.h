@@ -20,6 +20,7 @@ public:
     void paraseModifyCol(const QString &sql,DDL::DataBase&);
     void paraseChangeCol(const QString &sql,DDL::DataBase& db);
     void paraseDropTable(const QString &sql,DDL::DataBase& db);//删除表
+    void paraseDropDatabase(const QString &sql);//删除数据库
 
     // DML 解析方法
     InsertStatement parseInsert(const QString& sql);   // 解析 INSERT
@@ -44,6 +45,8 @@ private:
     void next();     // 下一个
     void match(TokenType type); // 匹配必须出现的Token
     QString hasForeign(DDL::Table&,DDL::DataBase&);
+
+    ParsedValue parseValue();
 };
 
 #endif // PARSER_H

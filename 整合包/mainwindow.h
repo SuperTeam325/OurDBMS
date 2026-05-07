@@ -43,6 +43,7 @@ private slots:
     void modifyTableMenu();                         // 修改表
     void viewTableMenu();                           //查看表
     void viewTableDataMenu();                       //查看数据
+    void deleteDatabase();                          //删除数据库
 
 
 private:

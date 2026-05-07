@@ -520,6 +520,63 @@ DDL::DataBase Parser::paraseCreateDB(const QString& sql,QString path){
 
     return db;
 }
+
+//删除数据库
+void Parser::paraseDropDatabase(const QString &sql){
+
+    //重置
+    tokens.clear();
+    pos=0;
+    tokens=le.ReadSQL(sql);
+
+    match(TOKEN_DROP);
+    match(TOKEN_DATABASE);
+    // 打开文件
+    QFile file("db_config.json");
+    if (!file.open(QIODevice::ReadWrite | QIODevice::Text)) {
+        throw::std::invalid_argument("数据库文件出错");
+    }
+
+    //解析 JSON
+    QByteArray data = file.readAll();
+    QJsonDocument doc = QJsonDocument::fromJson(data);
+    if (!doc.isObject()) {
+        file.close();
+    }
+
+    QJsonObject obj = doc.object();
+      file.close();
+
+    if(peek().type==TOKEN_IDENTIFIER){
+        QString dbName=peek().text;
+
+        if(!obj.contains(dbName)){
+            throw::std::invalid_argument("SQL执行失败，不存在此数据库");
+        }else{
+
+             obj.remove(dbName);
+            //删除文件夹
+            QDir dbDir(getDbPathByName(dbName));
+            if (dbDir.exists()) {
+                dbDir.removeRecursively(); // 强制删除整个文件夹
+            }
+            //重新写回文件
+             if (!file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
+                 throw std::invalid_argument("写入配置文件失败");
+             }
+
+            doc.setObject(obj);
+            file.seek(0);            // 回到文件开头
+            file.write(doc.toJson());// 写入新内容
+            file.close();
+        }
+    }
+    next();
+    match(TOKEN_SEMICOLON);
+}
+
+
+
 //操作USE DB
 void Parser::paraseUSEDB(const QString& sql,DDL::DataBase& db){
     QString path;
@@ -1357,331 +1414,104 @@ void Parser::paraseDropTable(const QString &sql,DDL::DataBase& db){
 //   INSERT INTO table VALUES (...);
 //   INSERT INTO table (col1, col2) VALUES (...);
 //   INSERT INTO table VALUES (...), (...), (...);
+ParsedValue Parser::parseValue()
+{
+    Token t = peek();
+    if (t.type == TOKEN_STRING) {
+        next();
+        return ParsedValue(t.text, true);
+    }
+    if (t.type == TOKEN_NUMBER || t.type == TOKEN_IDENTIFIER || t.type == TOKEN_NULL || t.type == TOKEN_DEFAULT) {
+        next();
+        return ParsedValue(t.text, false);
+    }
+    throw std::invalid_argument(QString("期望值，位置：%1").arg(t.text).toStdString());
+}
+
 InsertStatement Parser::parseInsert(const QString& sql)
 {
-    tokens.clear();
-    pos = 0;
     tokens = le.ReadSQL(sql);
-
+    pos = 0;
     InsertStatement stmt;
 
-    // INSERT
     match(TOKEN_INSERT);
-
-    // INTO
     match(TOKEN_INTO);
+    stmt.tableName = peek().text;
+    match(TOKEN_IDENTIFIER);
 
-    // 表名
-    if (peek().type == TOKEN_IDENTIFIER) {
-        stmt.tableName = peek().text;
-        next();
-    } else {
-        throw std::invalid_argument("语法错误：缺少表名");
-    }
-
-    // 检查是否有列名
     if (peek().type == TOKEN_LPAREN) {
-        next(); // 跳过 (
-
-        // 解析列名列表
-        while (peek().type != TOKEN_EOF) {
-            if (peek().type == TOKEN_IDENTIFIER) {
-                stmt.columns.append(peek().text);
-                next();
-            } else {
-                throw std::invalid_argument(QString("语法错误：期望列名 near %1").arg(peek().text).toStdString());
-            }
-
-            if (peek().type == TOKEN_COMMA) {
-                next();
-                continue;
-            } else if (peek().type == TOKEN_RPAREN) {
-                next();
-                break;
-            } else {
-                throw std::invalid_argument(QString("语法错误：期望 , 或 ) near %1").arg(peek().text).toStdString());
-            }
-        }
-    }
-
-    // VALUES
-    match(TOKEN_VALUES);
-
-    // 循环解析每一行 (...)，(...)，(...)
-    while (true) {
-        // 解析一行：(
-        match(TOKEN_LPAREN);
-
-        // 解析这一行的值
-        QVector<QString> row;
-        while (peek().type != TOKEN_EOF) {
-            if (peek().type == TOKEN_NUMBER) {
-                row.append(peek().text);
-                next();
-            } else if (peek().type == TOKEN_STRING) {
-                row.append(peek().text);
-                next();
-            } else if (peek().type == TOKEN_IDENTIFIER) {
-                // 处理 NULL 或其他标识符
-                if (peek().text.toUpper() == "NULL") {
-                    row.append("");
-                    next();
-                } else {
-                    row.append(peek().text);
-                    next();
-                }
-            } else {
-                throw std::invalid_argument(QString("语法错误：期望值 near %1").arg(peek().text).toStdString());
-            }
-
-            if (peek().type == TOKEN_COMMA) {
-                next();
-                continue;
-            } else if (peek().type == TOKEN_RPAREN) {
-                next();
-                break;
-            } else {
-                throw std::invalid_argument(QString("语法错误：期望 , 或 ) near %1").arg(peek().text).toStdString());
-            }
-        }
-
-        // 将这一行加入 rows
-        stmt.rows.append(row);
-
-        // 检查是还有下一行：应该有 , 后跟 (
-        if (peek().type == TOKEN_COMMA) {
-            next();
-            if (peek().type == TOKEN_LPAREN) {
-                continue;  // 继续解析下一行
-            } else {
-                throw std::invalid_argument(QString("语法错误：期望 ( after , near %1").arg(peek().text).toStdString());
-            }
-        } else if (peek().type == TOKEN_SEMICOLON || peek().type == TOKEN_EOF) {
-            break;  // 结束
-        } else {
-            throw std::invalid_argument(QString("语法错误：期望 , 或 ; near %1").arg(peek().text).toStdString());
-        }
-    }
-
-    // 分号（可选）
-    if (peek().type == TOKEN_SEMICOLON) {
         next();
+        while (peek().type != TOKEN_RPAREN && peek().type != TOKEN_EOF) {
+            stmt.columns.append(peek().text);
+            match(TOKEN_IDENTIFIER);
+            if (peek().type == TOKEN_COMMA) next();
+        }
+        match(TOKEN_RPAREN);
     }
 
+    match(TOKEN_VALUES);
+    while (peek().type != TOKEN_EOF && peek().type != TOKEN_SEMICOLON) {
+        match(TOKEN_LPAREN);
+        QVector<QString> row;
+        while (peek().type != TOKEN_RPAREN && peek().type != TOKEN_EOF) {
+            ParsedValue pv = parseValue();
+            row.append(pv.quoted ? ("'" + pv.value + "'") : pv.value);
+            if (peek().type == TOKEN_COMMA) next();
+        }
+        match(TOKEN_RPAREN);
+        stmt.rows.append(row);
+        if (peek().type == TOKEN_COMMA) next();
+    }
+    if (peek().type == TOKEN_SEMICOLON) next();
     return stmt;
 }
 
-// 解析 UPDATE
-// 支持：UPDATE table SET col1 = value1, col2 = value2 WHERE col = value;
 UpdateStatement Parser::parseUpdate(const QString& sql)
 {
-    tokens.clear();
-    pos = 0;
     tokens = le.ReadSQL(sql);
-
+    pos = 0;
     UpdateStatement stmt;
 
-    // UPDATE
     match(TOKEN_UPDATE);
-
-    // 表名
-    if (peek().type == TOKEN_IDENTIFIER) {
-        stmt.tableName = peek().text;
-        next();
-    } else {
-        throw std::invalid_argument("语法错误：缺少表名");
-    }
-
-    // SET
+    stmt.tableName = peek().text;
+    match(TOKEN_IDENTIFIER);
     match(TOKEN_SET);
 
-    // 解析 SET 部分：col = value [, col = value]
-    while (peek().type != TOKEN_EOF) {
-        if (peek().type == TOKEN_IDENTIFIER) {
-            QString colName = peek().text;
-            next();
-
-            match(TOKEN_EQUAL);
-
-            QString value;
-            if (peek().type == TOKEN_NUMBER) {
-                value = peek().text;
-                next();
-            } else if (peek().type == TOKEN_STRING) {
-                value = peek().text;
-                next();
-            } else if (peek().type == TOKEN_IDENTIFIER) {
-                if (peek().text.toUpper() == "NULL") {
-                    value = "";
-                    next();
-                } else {
-                    value = peek().text;
-                    next();
-                }
-            } else {
-                throw std::invalid_argument(QString("语法错误：期望值 near %1").arg(peek().text).toStdString());
-            }
-
-            stmt.setMap[colName] = value;
-        } else {
-            throw std::invalid_argument(QString("语法错误：期望列名 near %1").arg(peek().text).toStdString());
-        }
-
-        if (peek().type == TOKEN_COMMA) {
-            next();
-            continue;
-        } else if (peek().type == TOKEN_WHERE || peek().type == TOKEN_EOF) {
-            break;
-        } else {
-            throw std::invalid_argument(QString("语法错误：期望 , 或 WHERE near %1").arg(peek().text).toStdString());
-        }
-    }
-
-    // WHERE
-    if (peek().type == TOKEN_WHERE) {
-        next();
-
-        // WHERE 列名
-        if (peek().type == TOKEN_IDENTIFIER) {
-            stmt.whereColumn = peek().text;
-            next();
-        } else {
-            throw std::invalid_argument("语法错误：WHERE 后缺少列名");
-        }
-
-        // =
+    while (peek().type != TOKEN_WHERE && peek().type != TOKEN_EOF) {
+        QString column = peek().text;
+        match(TOKEN_IDENTIFIER);
         match(TOKEN_EQUAL);
-
-        // WHERE 值
-        if (peek().type == TOKEN_NUMBER) {
-            stmt.whereValue = peek().text;
-            next();
-        } else if (peek().type == TOKEN_STRING) {
-            stmt.whereValue = peek().text;
-            next();
-        } else if (peek().type == TOKEN_IDENTIFIER) {
-            if (peek().text.toUpper() == "NULL") {
-                stmt.whereValue = "";
-                next();
-            } else {
-                stmt.whereValue = peek().text;
-                next();
-            }
-        } else {
-            throw std::invalid_argument(QString("语法错误：期望值 near %1").arg(peek().text).toStdString());
-        }
-    } else {
-        throw std::invalid_argument("UPDATE 语句必须包含 WHERE 条件");
+        ParsedValue value = parseValue();
+        stmt.setMap[column] = value.quoted ? ("'" + value.value + "'") : value.value;
+        if (peek().type == TOKEN_COMMA) next();
     }
 
-    // 分号（可选）
-    if (peek().type == TOKEN_SEMICOLON) {
-        next();
-    }
-
+    match(TOKEN_WHERE);
+    stmt.whereColumn = peek().text;
+    match(TOKEN_IDENTIFIER);
+    match(TOKEN_EQUAL);
+    ParsedValue whereValue = parseValue();
+    stmt.whereValue = whereValue.value;
+    if (peek().type == TOKEN_SEMICOLON) next();
     return stmt;
 }
 
-// 解析 DELETE
-// 支持：DELETE FROM table WHERE col = value;
 DeleteStatement Parser::parseDelete(const QString& sql)
 {
-    tokens.clear();
-    pos = 0;
     tokens = le.ReadSQL(sql);
-
+    pos = 0;
     DeleteStatement stmt;
 
-    // DELETE
     match(TOKEN_DELETE);
-
-    // FROM
     match(TOKEN_FROM);
-
-    // 表名
-    if (peek().type == TOKEN_IDENTIFIER) {
-        stmt.tableName = peek().text;
-        next();
-    } else {
-        throw std::invalid_argument("语法错误：缺少表名");
-    }
-
-    // WHERE
-    if (peek().type == TOKEN_WHERE) {
-        next();
-
-        // WHERE 列名
-        if (peek().type == TOKEN_IDENTIFIER) {
-            stmt.whereColumn = peek().text;
-            next();
-        } else {
-            throw std::invalid_argument("语法错误：WHERE 后缺少列名");
-        }
-
-        // =
-        match(TOKEN_EQUAL);
-
-        // WHERE 值
-        if (peek().type == TOKEN_NUMBER) {
-            stmt.whereValue = peek().text;
-            next();
-        } else if (peek().type == TOKEN_STRING) {
-            stmt.whereValue = peek().text;
-            next();
-        } else if (peek().type == TOKEN_IDENTIFIER) {
-            if (peek().text.toUpper() == "NULL") {
-                stmt.whereValue = "";
-                next();
-            } else {
-                stmt.whereValue = peek().text;
-                next();
-            }
-        } else {
-            throw std::invalid_argument(QString("语法错误：期望值 near %1").arg(peek().text).toStdString());
-        }
-    } else {
-        throw std::invalid_argument("DELETE 语句必须包含 WHERE 条件");
-    }
-
-    // 分号（可选）
-    if (peek().type == TOKEN_SEMICOLON) {
-        next();
-    }
-
-    return stmt;
-}
-
-// ==============================================
-// SELECT 解析（仅支持 SELECT * FROM 表名）
-// ==============================================
-SelectStatement Parser::parseSelect(const QString& sql)
-{
-    tokens.clear();
-    pos = 0;
-    tokens = le.ReadSQL(sql);
-
-    SelectStatement stmt;
-
-    // SELECT
-    match(TOKEN_SELECT);
-
-    // *（只支持通配符）
-    if (peek().type == TOKEN_STAR) {
-        next();
-    } else {
-        throw std::invalid_argument("当前仅支持 SELECT * 语法");
-    }
-
-    // FROM
-    match(TOKEN_FROM);
-
-    // 表名
-    if (peek().type == TOKEN_IDENTIFIER) {
-        stmt.tableName = peek().text;
-        next();
-    } else {
-        throw std::invalid_argument("语法错误：期望表名");
-    }
-
+    stmt.tableName = peek().text;
+    match(TOKEN_IDENTIFIER);
+    match(TOKEN_WHERE);
+    stmt.whereColumn = peek().text;
+    match(TOKEN_IDENTIFIER);
+    match(TOKEN_EQUAL);
+    ParsedValue value = parseValue();
+    stmt.whereValue = value.value;
+    if (peek().type == TOKEN_SEMICOLON) next();
     return stmt;
 }
