@@ -9,13 +9,13 @@ QList<Token> Lexer::ReadSQL(const QString& sql)
     while (i < len) {
         QChar c = sql[i];
 
-        // 1. 跳过空格、换行、制表符
+        // 跳过空格、换行、制表符
         if (c.isSpace()) {
             i++;
             continue;
         }
 
-        // 2. 符号：( ) , ; = 单独成Token
+        // 符号：( ) , ; = 单独成Token
         if (c == '(') {
             tokens.append(Token(TOKEN_LPAREN, "("));
             i++;
@@ -41,13 +41,13 @@ QList<Token> Lexer::ReadSQL(const QString& sql)
             i++;
             continue;
         }
-        // 2.5 通配符 *
+        // 通配符 *
         if (c == '*') {
             tokens.append(Token(TOKEN_STAR, "*"));
             i++;
             continue;
         }
-        // 2.5 字符串字面量（单引号）
+        // 字符串字面量（单引号）
         if (c == '\'') {
             int start = i + 1;
             i++;
@@ -62,7 +62,7 @@ QList<Token> Lexer::ReadSQL(const QString& sql)
             tokens.append(Token(TOKEN_STRING, str));
             continue;
         }
-        // 3. 字母/下划线 → 读完整单词（关键字、标识符）
+        // 字母/下划线 → 读完整单词（关键字、标识符）
 
         if (c.isLetter() || c == '_') {
             int start = i;
@@ -75,7 +75,7 @@ QList<Token> Lexer::ReadSQL(const QString& sql)
             continue;
         }
 
-        // 4. 数字（支持整数、负数、小数，如 -95.5、95.5）
+        //数字（支持整数、负数、小数，如 -95.5、95.5）
         if (c.isDigit() || (c == '-' && i + 1 < len && sql[i + 1].isDigit())) {
             int start = i;
             if (c == '-') {
@@ -122,6 +122,7 @@ TokenType Lexer::checkKeyword(const QString& word)
     if(upper == "DROP") return TOKEN_DROP;
     if(upper == "ADD")  return TOKEN_ADD;
     if(upper == "MODIFY")  return TOKEN_MODIFY;
+    if(upper == "CHANGE")  return TOKEN_CHANGE;
     if(upper == "COLUMN") return TOKEN_COLUMN;
     if (upper == "INT") return TOKEN_INT;
     if (upper == "FLOAT") return TOKEN_FLOAT;
@@ -156,8 +157,7 @@ TokenType Lexer::checkKeyword(const QString& word)
 
 bool Lexer::isNumber(const QString& word)
 {
-    // 支持正数、负数、整数和小数
     bool ok;
-    word.toDouble(&ok);
+    word.toInt(&ok);
     return ok;
 }

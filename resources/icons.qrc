@@ -1,0 +1,15 @@
+<RCC>
+  <qresource prefix="/icons">
+    <file alias="run">icons/run.svg</file>
+    <file alias="refresh">icons/refresh.svg</file>
+    <file alias="database">icons/database.svg</file>
+    <file alias="table">icons/table.svg</file>
+    <file alias="settings">icons/settings.svg</file>
+    <file alias="export">icons/export.svg</file>
+    <file alias="clear">icons/clear.svg</file>
+    <file alias="close">icons/close.svg</file>
+  </qresource>
+  <qresource prefix="/style">
+    <file alias="app">style.qss</file>
+  </qresource>
+</RCC>

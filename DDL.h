@@ -34,6 +34,7 @@ struct FieldConstraint{
     QString ref_table;    // 被引用的表名
     QString ref_field;    // 被引用的字段名
 
+
     FieldConstraint()
         : not_null(false),
         default_val(""),
@@ -63,11 +64,11 @@ struct FieldConstraint{
         QStringList cons;
 
         if (t==TOKEN_PRIMARY)   cons << "PRIMARY KEY";
-        if (t==TOKEN_NOT)      cons << "NOT NULL";
-        if (t==TOKEN_UNIQUE)    cons << "UNIQUE";
-        if(t==TOKEN_AUTO_INCREMENT) cons<<"AUTO_INCREMENT";
-        if(t==TOKEN_FOREIGN) cons<<"FOREIGN KEY";
-        if (!default_val.isEmpty())
+        else if (t==TOKEN_NOT)      cons << "NOT NULL";
+        else if (t==TOKEN_UNIQUE)    cons << "UNIQUE";
+        else if(t==TOKEN_AUTO_INCREMENT) cons<<"AUTO_INCREMENT";
+        else if(t==TOKEN_FOREIGN) cons<<"FOREIGN KEY";
+        else if (!default_val.isEmpty())
             cons << "DEFAULT " + default_val;
 
         return cons.join(" ");
@@ -138,6 +139,7 @@ struct Table{
 struct DataBase{
     QString name;
     QMap<QString,Table> tables;
+    QVector<QString> tableNames;
     QString path;
 
 
@@ -175,9 +177,11 @@ static QStringList readFromDbs(QString &);
 // 加载：从 schema.dbs 读取所有表结构
 static Table loadSchema(const QString& path);
 
-// 加载表数据从 表名.tbf
-// 路径格式：dbPath/表名/表名.tbf
-static QVector<QVector<QString>> loadTableData(const Table &table, const QString &dbPath);
+// 保存表数据到 表名.tbf（dbPath 非空时写入 dbPath/表名/表名.tbf）
+static bool saveTableData(const Table &table, const QVector<QVector<QString>> &rows, const QString& dbPath = "");
+
+// 加载表数据从 表名.tbf（dbPath 非空时读取 dbPath/表名/表名.tbf）
+static QVector<QVector<QString>> loadTableData(const Table &table, const QString& dbPath = "");
 };
 
 #endif // DDL_H

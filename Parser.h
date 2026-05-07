@@ -9,6 +9,7 @@ class Parser {
 public:
     Parser(QList<Token> tokens);
     Parser();
+    //DDL部分
     DDL::Table parseCreateTable(const QString&,DDL::DataBase&);  // 解析 CREATE TABLE，返回表结构
     DDL:: DataBase paraseCreateDB(const QString&, QString path); //解析 CREATE DATABASE
     void paraseUSEDB(const QString&,DDL::DataBase&);
@@ -17,7 +18,8 @@ public:
     void paraseAddCol(const QString &sql,DDL::DataBase&);
     void paraseAddCS(const QString &sql,DDL::DataBase& db);//添加约束
     void paraseModifyCol(const QString &sql,DDL::DataBase&);
-    DDL::FieldType parseFieldType(const QString&);
+    void paraseChangeCol(const QString &sql,DDL::DataBase& db);
+    void paraseDropTable(const QString &sql,DDL::DataBase& db);//删除表
 
     // DML 解析方法
     InsertStatement parseInsert(const QString& sql);   // 解析 INSERT
@@ -25,6 +27,11 @@ public:
     DeleteStatement parseDelete(const QString& sql);   // 解析 DELETE
     SelectStatement parseSelect(const QString& sql);   // 解析 SELECT
 
+    //辅助函数
+    QString getDbPathByName(const QString& dbName);
+
+
+    DDL::FieldType parseFieldType(const QString&);
 private:
     Lexer le;
     DDL::Table table;

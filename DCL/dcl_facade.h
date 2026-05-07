@@ -27,6 +27,7 @@ public:
     bool authorizeSql(const QString& sql, QString& error) const;
 
 private:
+
     bool parseSqlActionAndTable(const QString& sql, TableAction& action, QString& tableName) const;
     TableAction parseActionFromText(const QString& text) const;
     bool handleGrantSql(const QString& sql, QString& message, QString& error);

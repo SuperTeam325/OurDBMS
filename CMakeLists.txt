@@ -1,4 +1,3 @@
-
 cmake_minimum_required(VERSION 3.16)
 
 project(DBMS VERSION 0.1 LANGUAGES CXX)
@@ -13,43 +12,80 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
-<<<<<<< HEAD
-set(DDL_SOURCES
-    DDL/main.cpp
-    DDL/mainwindow.cpp
-    DDL/mainwindow.h
-    DDL/mainwindow.ui
-    DDL/AST.h
-    DDL/DDL.cpp
-    DDL/DDL.h
-    DDL/Lexer.cpp
-    DDL/Lexer.h
-    DDL/Parser.cpp
-    DDL/Parser.h
-    DDL/dialog.cpp
-    DDL/dialog.h
-    DDL/dialog.ui
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/DCL)
+
+
+add_compile_definitions(PROJECT_ROOT_DIR="${CMAKE_SOURCE_DIR}")
+
+set(PROJECT_SOURCES
+    main.cpp
+
+    # New UI
+    src/ui/MainWindow.h
+    src/ui/MainWindow.cpp
+    src/ui/DatabaseExplorer.h
+    src/ui/DatabaseExplorer.cpp
+    src/ui/SqlEditorPanel.h
+    src/ui/SqlEditorPanel.cpp
+    src/ui/ResultView.h
+    src/ui/ResultView.cpp
+    src/ui/QueryHistoryPanel.h
+    src/ui/QueryHistoryPanel.cpp
+    src/ui/SettingsDialog.h
+    src/ui/SettingsDialog.cpp
+    src/ui/AboutDialog.h
+    src/ui/AboutDialog.cpp
+
+    # Resources
+    resources/icons.qrc
+
+    DDL.h
+    DDL.cpp
+    Lexer.h
+    Lexer.cpp
+    Parser.h
+    Parser.cpp
+
+    dialog.h
+    dialog.cpp
+    dialog.ui
+
+    # DCL
+    DCL/auth_service.h
+    DCL/auth_service.cpp
+    DCL/dcl_facade.h
+    DCL/dcl_facade.cpp
+    DCL/dcl_types.h
+    DCL/logindialog.h
+    DCL/logindialog.cpp
+    DCL/logindialog.ui
+    DCL/permission_service.h
+    DCL/permission_service.cpp
+    DCL/session_manager.h
+    DCL/session_manager.cpp
+    DCL/system_db_bootstrap.h
+    DCL/system_db_bootstrap.cpp
+    DCL/test.cpp
+    DCL/user_repository.h
+    DCL/user_repository.cpp
 )
 
-# DCL 与 DDL 平行，作为 DBMS 目标的源码子目录
-file(GLOB DCL_SOURCES CONFIGURE_DEPENDS
-    DCL/*.cpp
-    DCL/*.h
-    DCL/*.hpp
-    DCL/*.ui
-)
-  
-# Define target properties for Android with Qt 6 as:
-#    set_property(TARGET DBMS APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
-#                 ${CMAKE_CURRENT_SOURCE_DIR}/android)
-# For more information, see https://doc.qt.io/qt-6/qt-add-executable.html#target-creation
+if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
+    qt_add_executable(DBMS
+        MANUAL_FINALIZATION
+        ${PROJECT_SOURCES}
+        DML.h
+        DML.cpp
+        Log.h
+        Log.cpp
+    )
 else()
     if(ANDROID)
         add_library(DBMS SHARED
             ${PROJECT_SOURCES}
         )
-# Define properties for Android with Qt 5 after find_package() calls as:
-#    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
     else()
         add_executable(DBMS
             ${PROJECT_SOURCES}
@@ -59,18 +95,17 @@ endif()
 
 target_link_libraries(DBMS PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 
-# Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
-# If you are developing for iOS or macOS you should consider setting an
-# explicit, fixed bundle identifier manually though.
 if(${QT_VERSION} VERSION_LESS 6.1.0)
-  set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER com.example.DBMS)
+  set(BUNDLE_ID_OPTION MACOS_BUNDLE_IDENTIFIER com.example.DBMS)
 endif()
+
 set_target_properties(DBMS PROPERTIES
     ${BUNDLE_ID_OPTION}
-    MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
-    MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
-    MACOSX_BUNDLE TRUE
+    MACOS_BUNDLE_VERSION ${PROJECT_VERSION}
+    MACOS_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
+    MACOS_BUNDLE TRUE
     WIN32_EXECUTABLE TRUE
+    AUTOUIC_SEARCH_PATHS "${CMAKE_CURRENT_SOURCE_DIR};${CMAKE_CURRENT_SOURCE_DIR}/DCL"
 )
 
 include(GNUInstallDirs)

@@ -2,7 +2,7 @@
 #define USER_REPOSITORY_H
 
 #include "dcl_types.h"
-#include "../DDL/DDL.h"
+#include "../DDL.h"
 #include <QString>
 
 namespace DCL {
@@ -15,12 +15,12 @@ public:
     bool userExists(const QString& username) const;
     bool createUser(const QString& username, const QString& plainPassword, bool isAdmin, QString& error);
     bool deleteUser(const QString& username, QString& error);
+    bool setUserAdmin(const QString& username, bool isAdmin, QString& error);
     bool validateUser(const QString& username, const QString& plainPassword, UserRecord& outUser, QString& error) const;
     bool getUser(const QString& username, UserRecord& outUser) const;
-
+    DDL::Table usersTable() const;
 private:
     QString sysDbPath() const;
-    DDL::Table usersTable() const;
     QString hashPassword(const QString& plainPassword, const QString& salt) const;
     QString generateSalt() const;
 

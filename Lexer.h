@@ -14,6 +14,7 @@ enum TokenType {
     TOKEN_TABLE,
     TOKEN_ADD,
     TOKEN_MODIFY,
+    TOKEN_CHANGE,
     TOKEN_COLUMN,
     //类型
     TOKEN_INT,
@@ -52,9 +53,10 @@ enum TokenType {
     TOKEN_SELECT,
     TOKEN_STAR,   // 通配符 *
 
-    TOKEN_NUMBER,
     TOKEN_STRING,    // 单引号字符串
     TOKEN_EQUAL,     // =
+
+    TOKEN_NUMBER,
     TOKEN_EOF
 };
 

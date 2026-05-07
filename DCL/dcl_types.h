@@ -24,9 +24,16 @@ enum class TableAction {
     Insert,
     Update,
     Delete,
-    Create,
-    Alter,
-    Drop,
+    CreateDatabase,
+    DropDatabase,
+    CreateTable,    // was Create
+    DropTable,      // was Drop
+    Alter,          // all ALTER TABLE sub-types
+    CreateUser,
+    DropUser,
+    GrantPrivilege,
+    RevokePrivilege,
+    AllPrivileges,  // sentinel for ALL PRIVILEGES
     Unknown
 };
 
