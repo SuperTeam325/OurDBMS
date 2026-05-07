@@ -1,0 +1,6 @@
+[21:02:38]-admin:USE s;
+[21:03:21]-admin:UPDATE enp SET age = 20 WHERE id = 123123;
+[21:05:01]-username:USE s;
+[21:08:13]-username:INSERT INTO enp VALUES ('Tom','12',2312312321,2345);
+[21:08:36]-username:SQL语句执行失败：唯一约束字段 id 值 2345 重复
+[21:08:40]-username:INSERT INTO enp VALUES (Tom,'12',2312312321,23456);

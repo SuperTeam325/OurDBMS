@@ -1,0 +1,66 @@
+[11:08:47]-admin:use uuu;
+[11:08:57]-admin:无此表: near users
+[11:09:30]-admin:CREATE TABLE users (
+id INT AUTO_INCREMENT PRIMARY KEY,
+name VARCHAR(255) NOT NULL,
+age INT,
+email VARCHAR(255),
+CONSTRAINT users_email_unique UNIQUE (email)
+) ;
+[11:09:50]-admin:CREATE TABLE enp (
+id INT AUTO_INCREMENT PRIMARY KEY,
+name VARCHAR(255) NOT NULL,
+age INT,
+email VARCHAR(255),
+FOREIGN KEY (id) REFERENCES users(id)
+);
+[11:10:57]-admin:失败，表已存在！
+[11:11:01]-admin:CREATE TABLE enp2 (
+id INT AUTO_INCREMENT,
+name VARCHAR(255) NOT NULL,
+age INT, email VARCHAR(255),
+CONSTRAINT pk_enp_id PRIMARY KEY (id),
+CONSTRAINT uk_enp_email UNIQUE (email),
+CONSTRAINT fk_enp_user FOREIGN KEY (id) REFERENCES users(id)
+);
+[11:11:50]-admin:ALTER TABLE enp MODIFY age INT NOT NULL;
+[11:12:10]-admin:ALTER TABLE enp DROP PRIMARY KEY;
+[11:13:18]-admin:ALTER TABLE enp MODIFY age VARCHAR(2) UNIQUE, MODIFY email UNIQUE;
+[11:14:07]-admin:ALTER TABLE enp2 DROP COLUMN name, DROP COLUMN email;
+[11:14:45]-admin:失败，字段已存在！
+[11:14:55]-admin:ALTER TABLE enp2  ADD email VARCHAR(20);
+[11:15:38]-admin:ALTER TABLE enp2 ADD CONSTRAINT fk_enp_age FOREIGN KEY (age) REFERENCES users(id);
+[11:16:52]-admin:失败，表不存在！
+[11:16:58]-admin:ALTER TABLE users
+CHANGE name stname;
+[11:25:52]-admin:USE uuu;
+[11:27:05]-admin:CREATE TABLE student (
+    id INT PRIMARY KEY,
+    name VARCHAR(5) NOT NULL,
+    age INT DEFAULT 18,
+    phone INT UNIQUE
+);
+[11:27:12]-admin:INSERT INTO student VALUES (1, 'Tom', 20, 100);
+[11:27:23]-admin:INSERT INTO student VALUES (2, 'Jack', NULL, 200);
+[11:27:47]-admin:SQL语句执行失败：NOT NULL 约束违反：字段 name 不能为空
+[11:27:59]-admin:SQL语句执行失败：PRIMARY KEY 约束违反：字段 id 的值 '1' 已存在
+[11:28:09]-admin:INSERT INTO student VALUES (7, 'A', 20, 700), (8, 'B', 21, 800);
+[11:28:26]-admin:SQL语句执行失败：PRIMARY KEY 约束违反：字段 id 的值 '9' 已存在
+[11:28:38]-admin:SQL语句执行失败：类型约束违反：字段 age 应为 INT 类型，实际值为 'abc'
+[11:28:55]-admin:DELETE FROM student WHERE id = 1;
+[11:29:35]-admin:CREATE TABLE department (
+    id INT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL
+);
+[11:29:41]-admin:CREATE TABLE employee (
+    id INT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    dept_id INT,
+    salary FLOAT,
+    bonus FLOAT
+);
+[11:29:50]-admin:INSERT INTO department VALUES (1, '研发部');
+[11:29:55]-admin:INSERT INTO department VALUES (2, '市场部');
+[11:30:00]-admin:INSERT INTO department VALUES (3, '财务部');
+[11:30:07]-admin:INSERT INTO employee VALUES (1, '张三', 1, 8000, 500);
+[11:30:12]-admin:INSERT INTO employee VALUES (2, '李四', 1, 9000, 800);
