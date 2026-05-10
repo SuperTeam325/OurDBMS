@@ -1,0 +1,23 @@
+# ninja log v6
+12	900	7999450441030645	DBMS2_autogen/timestamp	39621f39ea104120
+12	900	7999450441030645	DBMS2_autogen/mocs_compilation.cpp	39621f39ea104120
+12	900	7999450441030645	C:/Claude工作区间/DBMS2/_chk/DBMS2_autogen/timestamp	39621f39ea104120
+12	900	7999450441030645	C:/Claude工作区间/DBMS2/_chk/DBMS2_autogen/mocs_compilation.cpp	39621f39ea104120
+986	5416	7999450442507783	CMakeFiles/DBMS2.dir/DCL/session_manager.cpp.obj	8d7bed9e6e9039f4
+958	5714	7999450442230006	CMakeFiles/DBMS2.dir/DCL/auth_service.cpp.obj	51698135bcd75fe7
+930	6128	7999450441944408	CMakeFiles/DBMS2.dir/Lexer.cpp.obj	7643a579aa7ad3de
+939	6437	7999450442029522	CMakeFiles/DBMS2.dir/Log.cpp.obj	4ab7b9745cca9fa0
+966	6491	7999450442305149	CMakeFiles/DBMS2.dir/DCL/dcl_facade.cpp.obj	2a51df674a1eaf89
+993	6663	7999450442578378	CMakeFiles/DBMS2.dir/DCL/system_db_bootstrap.cpp.obj	ef618841c9952d84
+972	6934	7999450442372545	CMakeFiles/DBMS2.dir/DCL/logindialog.cpp.obj	3cd999adbc95c827
+980	7303	7999450442448887	CMakeFiles/DBMS2.dir/DCL/permission_service.cpp.obj	ef885eb0e96513f3
+922	7759	7999450441869312	CMakeFiles/DBMS2.dir/DDL.cpp.obj	7cfe4ddd977c7ef8
+1002	7793	7999450442663877	CMakeFiles/DBMS2.dir/DCL/user_repository.cpp.obj	51a370417c5e8d9e
+918	8037	7999450441829312	CMakeFiles/DBMS2.dir/dialog.cpp.obj	dd73cd66e11f94d3
+926	8214	7999450441904361	CMakeFiles/DBMS2.dir/DML.cpp.obj	a7185c522db75ebf
+909	8239	7999450441744281	CMakeFiles/DBMS2.dir/main.cpp.obj	49156b1e2da4d7f2
+905	8657	7999450441687566	CMakeFiles/DBMS2.dir/DBMS2_autogen/mocs_compilation.cpp.obj	b4e8a741ff462f0b
+945	8842	7999450442104611	CMakeFiles/DBMS2.dir/Index.cpp.obj	cb547dddf1f29957
+934	9136	7999450441984441	CMakeFiles/DBMS2.dir/Parser.cpp.obj	7ef4c5038d663e77
+952	9634	7999450442164820	CMakeFiles/DBMS2.dir/DQL/DQL.cpp.obj	db0a06fda9d2c7b4
+913	10642	7999450441774204	CMakeFiles/DBMS2.dir/mainwindow.cpp.obj	3a29ac2c199dab2d

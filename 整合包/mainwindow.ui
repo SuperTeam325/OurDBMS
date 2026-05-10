@@ -6,229 +6,563 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1376</width>
-    <height>961</height>
+    <width>1400</width>
+    <height>900</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>DBMS</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QStackedWidget" name="stackedWidget">
-    <property name="geometry">
-     <rect>
-      <x>-20</x>
-      <y>0</y>
-      <width>1391</width>
-      <height>941</height>
-     </rect>
-    </property>
-    <property name="currentIndex">
+   <layout class="QHBoxLayout" name="mainHorizontalLayout">
+    <property name="spacing">
      <number>0</number>
     </property>
-    <widget class="QWidget" name="page">
-     <widget class="QTextEdit" name="Terminal">
-      <property name="geometry">
-       <rect>
-        <x>490</x>
-        <y>170</y>
-        <width>831</width>
-        <height>511</height>
-       </rect>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QFrame" name="navFrame">
+      <property name="minimumSize">
+       <size>
+        <width>180</width>
+        <height>0</height>
+       </size>
       </property>
-      <property name="font">
-       <font>
-        <pointsize>12</pointsize>
-       </font>
+<property name="styleSheet">
+       <string notr="true">QFrame#navFrame { background-color: #2c3e50; border-right: 1px solid #1a252f; }</string>
       </property>
-      <property name="readOnly">
-       <bool>true</bool>
-      </property>
-     </widget>
-     <widget class="QTextEdit" name="sqlEdit">
-      <property name="geometry">
-       <rect>
-        <x>490</x>
-        <y>680</y>
-        <width>721</width>
-        <height>221</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>11</pointsize>
-        <bold>true</bold>
-       </font>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label">
-      <property name="geometry">
-       <rect>
-        <x>480</x>
-        <y>150</y>
-        <width>69</width>
-        <height>19</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>11</pointsize>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>SQL区</string>
-      </property>
-     </widget>
-     <widget class="Line" name="line">
-      <property name="geometry">
-       <rect>
-        <x>540</x>
-        <y>150</y>
-        <width>791</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="orientation">
-       <enum>Qt::Orientation::Horizontal</enum>
-      </property>
-     </widget>
-     <widget class="Line" name="line_2">
-      <property name="geometry">
-       <rect>
-        <x>470</x>
-        <y>160</y>
-        <width>20</width>
-        <height>751</height>
-       </rect>
-      </property>
-      <property name="orientation">
-       <enum>Qt::Orientation::Vertical</enum>
-      </property>
-     </widget>
-     <widget class="Line" name="line_3">
-      <property name="geometry">
-       <rect>
-        <x>480</x>
-        <y>900</y>
-        <width>851</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="orientation">
-       <enum>Qt::Orientation::Horizontal</enum>
-      </property>
-     </widget>
-     <widget class="Line" name="line_4">
-      <property name="geometry">
-       <rect>
-        <x>1320</x>
-        <y>160</y>
-        <width>20</width>
-        <height>751</height>
-       </rect>
-      </property>
-      <property name="orientation">
-       <enum>Qt::Orientation::Vertical</enum>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="SubmitSQL">
-      <property name="geometry">
-       <rect>
-        <x>1210</x>
-        <y>680</y>
-        <width>111</width>
-        <height>221</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>12</pointsize>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>发送</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="SetPath">
-      <property name="geometry">
-       <rect>
-        <x>480</x>
-        <y>20</y>
-        <width>151</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>12</pointsize>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>设置数据库路径</string>
-      </property>
-     </widget>
-     <widget class="QTreeWidget" name="treeWidget">
-      <property name="geometry">
-       <rect>
-        <x>60</x>
-        <y>150</y>
-        <width>391</width>
-        <height>761</height>
-       </rect>
-      </property>
-      <column>
-       <property name="text">
-        <string>数据库导航</string>
+      <layout class="QVBoxLayout" name="navLayout">
+       <property name="spacing">
+        <number>2</number>
        </property>
-      </column>
+       <property name="leftMargin">
+        <number>10</number>
+       </property>
+       <property name="topMargin">
+        <number>20</number>
+       </property>
+       <property name="rightMargin">
+        <number>10</number>
+       </property>
+       <property name="bottomMargin">
+        <number>20</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="currentUserLabel">
+         <property name="text">
+          <string>当前用户: -</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">color: #ecf0f1; font-size: 12pt; font-weight: bold; padding: 10px 5px; border-bottom: 1px solid #34495e;</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="navSpacer1">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint">
+          <size>
+           <width>20</width>
+           <height>15</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnDataMgmt">
+         <property name="text">
+          <string>  数据管理</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>42</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QPushButton { text-align: left; color: #ecf0f1; background-color: transparent; border: none; border-radius: 6px; font-size: 11pt; padding-left: 12px; } QPushButton:hover { background-color: #34495e; } QPushButton:checked { background-color: #3498db; color: white; font-weight: bold; }</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnConsole">
+         <property name="text">
+          <string>  控制台</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>42</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QPushButton { text-align: left; color: #ecf0f1; background-color: transparent; border: none; border-radius: 6px; font-size: 11pt; padding-left: 12px; } QPushButton:hover { background-color: #34495e; } QPushButton:checked { background-color: #3498db; color: white; font-weight: bold; }</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnLogViewer">
+         <property name="text">
+          <string>  日志查看</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>42</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QPushButton { text-align: left; color: #ecf0f1; background-color: transparent; border: none; border-radius: 6px; font-size: 11pt; padding-left: 12px; } QPushButton:hover { background-color: #34495e; } QPushButton:checked { background-color: #3498db; color: white; font-weight: bold; }</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="navSpacer2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnSetPath">
+         <property name="text">
+          <string>  设置数据库路径</string>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>38</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QPushButton { text-align: left; color: #bdc3c7; background-color: transparent; border: 1px solid #34495e; border-radius: 6px; font-size: 10pt; padding-left: 12px; } QPushButton:hover { background-color: #34495e; color: white; }</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
-     <widget class="QLabel" name="currentUserTabel">
-      <property name="geometry">
-       <rect>
-        <x>40</x>
-        <y>0</y>
-        <width>131</width>
-        <height>41</height>
-       </rect>
+    </item>
+    <item>
+     <widget class="QStackedWidget" name="contentStack">
+      <property name="currentIndex">
+       <number>0</number>
       </property>
-      <property name="font">
-       <font>
-        <pointsize>12</pointsize>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>当前用户:</string>
-      </property>
+      <!-- ========== Page 0: 数据管理 ========== -->
+      <widget class="QWidget" name="dataMgmtPage">
+       <layout class="QVBoxLayout" name="dataMgmtLayout">
+        <property name="spacing">
+         <number>6</number>
+        </property>
+        <property name="leftMargin">
+         <number>10</number>
+        </property>
+        <property name="topMargin">
+         <number>10</number>
+        </property>
+        <property name="rightMargin">
+         <number>10</number>
+        </property>
+        <property name="bottomMargin">
+         <number>10</number>
+        </property>
+        <item>
+         <widget class="QFrame" name="dataToolbar">
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>44</height>
+           </size>
+          </property>
+          <layout class="QHBoxLayout" name="dataToolbarLayout">
+           <property name="spacing">
+            <number>8</number>
+           </property>
+           <property name="leftMargin">
+            <number>5</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>5</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="dataMgmtTitle">
+             <property name="text">
+              <string>数据库管理</string>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">font-size: 13pt; font-weight: bold; color: #2c3e50;</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer>
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btnRefreshTree">
+             <property name="text">
+              <string>刷新</string>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>80</width>
+               <height>32</height>
+              </size>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QPushButton { background-color: #3498db; color: white; border: none; border-radius: 4px; font-size: 10pt; padding: 4px 12px; } QPushButton:hover { background-color: #2980b9; }</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSplitter" name="dataSplitter">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <widget class="QTreeWidget" name="treeWidget">
+           <property name="minimumSize">
+            <size>
+             <width>280</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">QTreeWidget { border: 1px solid #dcdcdc; border-radius: 4px; font-size: 10pt; outline: none; } QTreeWidget:focus { border: 1px solid #dcdcdc; outline: none; } QTreeWidget::item { padding: 6px; border-bottom: 1px solid #ecf0f1; } QTreeWidget::item:selected { background-color: #3498db; color: white; } QTreeWidget::item:hover { background-color: #d4e6f1; } QTreeWidget::item:selected:hover { background-color: #2980b9; color: white; }</string>
+           </property>
+           <column>
+            <property name="text">
+             <string>数据库导航</string>
+            </property>
+           </column>
+          </widget>
+          <widget class="QStackedWidget" name="detailStack">
+           <property name="minimumSize">
+            <size>
+             <width>400</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="currentIndex">
+            <number>0</number>
+           </property>
+           <widget class="QWidget" name="detailWelcomePage">
+            <layout class="QVBoxLayout" name="welcomeLayout">
+             <item>
+              <widget class="QLabel" name="welcomeLabel">
+               <property name="text">
+                <string>请从左侧导航树选择数据库或表进行操作
+
+右键点击数据库节点：新建表、删除数据库
+右键点击表节点：查看结构、查看数据、修改、删除</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">color: #7f8c8d; font-size: 12pt;</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+           <widget class="QWidget" name="detailTableStructPage"/>
+           <widget class="QWidget" name="detailTableDataPage"/>
+          </widget>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <!-- ========== Page 1: 控制台 ========== -->
+      <widget class="QWidget" name="consolePage">
+       <layout class="QVBoxLayout" name="consoleLayout">
+        <property name="spacing">
+         <number>6</number>
+        </property>
+        <property name="leftMargin">
+         <number>10</number>
+        </property>
+        <property name="topMargin">
+         <number>10</number>
+        </property>
+        <property name="rightMargin">
+         <number>10</number>
+        </property>
+        <property name="bottomMargin">
+         <number>10</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="consoleTitleLabel">
+          <property name="text">
+           <string>SQL 控制台</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">font-size: 13pt; font-weight: bold; color: #2c3e50; padding-bottom: 2px;</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTextEdit" name="Terminal">
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QTextEdit { background-color: #1e1e1e; color: #d4d4d4; border: 1px solid #3c3c3c; border-radius: 4px; font-family: Consolas, "Courier New", monospace; font-size: 11pt; padding: 8px; }</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="sqlInputLayout">
+          <property name="spacing">
+           <number>8</number>
+          </property>
+          <item>
+           <widget class="QTextEdit" name="sqlEdit">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>100</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>140</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QTextEdit { border: 1px solid #bdc3c7; border-radius: 4px; font-family: Consolas, "Courier New", monospace; font-size: 11pt; padding: 6px; } QTextEdit:focus { border-color: #3498db; }</string>
+            </property>
+            <property name="placeholderText">
+             <string>在此输入 SQL 语句...</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="SubmitSQL">
+            <property name="text">
+             <string>执行</string>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>90</width>
+              <height>100</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>90</width>
+              <height>140</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QPushButton { background-color: #27ae60; color: white; border: none; border-radius: 4px; font-size: 12pt; font-weight: bold; } QPushButton:hover { background-color: #219a52; } QPushButton:pressed { background-color: #1e8449; }</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+      <!-- ========== Page 2: 日志查看 ========== -->
+      <widget class="QWidget" name="logViewerPage">
+       <layout class="QVBoxLayout" name="logViewerLayout">
+        <property name="spacing">
+         <number>6</number>
+        </property>
+        <property name="leftMargin">
+         <number>10</number>
+        </property>
+        <property name="topMargin">
+         <number>10</number>
+        </property>
+        <property name="rightMargin">
+         <number>10</number>
+        </property>
+        <property name="bottomMargin">
+         <number>10</number>
+        </property>
+        <item>
+         <layout class="QHBoxLayout" name="logHeaderLayout">
+          <property name="spacing">
+           <number>8</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="logTitleLabel">
+            <property name="text">
+             <string>SQL 操作日志</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">font-size: 13pt; font-weight: bold; color: #2c3e50;</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnRefreshLogs">
+            <property name="text">
+             <string>刷新日志列表</string>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>110</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QPushButton { background-color: #3498db; color: white; border: none; border-radius: 4px; font-size: 10pt; padding: 4px 12px; } QPushButton:hover { background-color: #2980b9; }</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QSplitter" name="logSplitter">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <widget class="QListWidget" name="logFileList">
+           <property name="minimumSize">
+            <size>
+             <width>200</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">QListWidget { border: 1px solid #dcdcdc; border-radius: 4px; font-size: 10pt; outline: none; } QListWidget:focus { border: 1px solid #dcdcdc; outline: none; } QListWidget::item { padding: 6px; border-bottom: 1px solid #ecf0f1; } QListWidget::item:selected { background-color: #3498db; color: white; } QListWidget::item:hover { background-color: #d4e6f1; } QListWidget::item:selected:hover { background-color: #2980b9; color: white; }</string>
+           </property>
+          </widget>
+          <widget class="QWidget" name="logContentPanel">
+           <layout class="QVBoxLayout" name="logContentLayout">
+            <property name="spacing">
+             <number>4</number>
+            </property>
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <layout class="QHBoxLayout" name="logSearchLayout">
+              <property name="spacing">
+               <number>6</number>
+              </property>
+              <item>
+               <widget class="QLineEdit" name="logSearchInput">
+                <property name="placeholderText">
+                 <string>输入关键字过滤日志...</string>
+                </property>
+                <property name="clearButtonEnabled">
+                 <bool>true</bool>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">QLineEdit { border: 1px solid #bdc3c7; border-radius: 4px; font-size: 10pt; padding: 5px 8px; } QLineEdit:focus { border-color: #3498db; }</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="logEntryCountLabel">
+                <property name="text">
+                 <string></string>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">color: #7f8c8d; font-size: 9pt; min-width: 60px;</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <widget class="QTreeWidget" name="logContentTree">
+              <property name="rootIsDecorated">
+               <bool>true</bool>
+              </property>
+              <property name="animated">
+               <bool>true</bool>
+              </property>
+              <property name="columnCount">
+               <number>1</number>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">QTreeWidget { border: 1px solid #dcdcdc; border-radius: 4px; font-family: Consolas, "Courier New", monospace; font-size: 10pt; outline: none; } QTreeWidget:focus { border: 1px solid #dcdcdc; outline: none; } QTreeWidget::item { padding: 4px 6px; border-bottom: 1px solid #f0f0f0; } QTreeWidget::item:selected { background-color: #3498db; color: white; } QTreeWidget::item:hover { background-color: #d4e6f1; } QTreeWidget::item:selected:hover { background-color: #2980b9; color: white; }</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </widget>
-    </widget>
-    <widget class="QWidget" name="page_3"/>
-    <widget class="QWidget" name="page_2"/>
-   </widget>
+    </item>
+   </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1376</width>
+     <width>1400</width>
      <height>25</height>
     </rect>
    </property>
-  </widget>
-  <widget class="QToolBar" name="toolBar">
-   <property name="windowTitle">
-    <string>toolBar</string>
-   </property>
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
  </widget>

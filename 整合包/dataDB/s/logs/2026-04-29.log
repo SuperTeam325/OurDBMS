@@ -1,4 +1,0 @@
-[11:10:29]-admin:USE s;
-[11:10:37]-admin:SELECT * FROM enp;
-[11:12:39]-admin:SQL语句执行失败：当前仅支持 SELECT * 语法
-[22:51:40]-admin:USE s;

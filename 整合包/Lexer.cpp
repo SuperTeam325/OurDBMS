@@ -151,6 +151,8 @@ TokenType Lexer::checkKeyword(const QString& word)
     if (upper == "FROM") return TOKEN_FROM;
     if (upper == "AND") return TOKEN_AND;
     if (upper == "SELECT") return TOKEN_SELECT;
+    if (upper == "INDEX")  return TOKEN_INDEX;
+    if (upper == "ON")     return TOKEN_ON;
 
     return TOKEN_IDENTIFIER;
 }

@@ -15,6 +15,7 @@ public:
     bool userExists(const QString& username) const;
     bool createUser(const QString& username, const QString& plainPassword, bool isAdmin, QString& error);
     bool deleteUser(const QString& username, QString& error);
+    bool setUserAdmin(const QString& username, bool isAdmin, QString& error);
     bool validateUser(const QString& username, const QString& plainPassword, UserRecord& outUser, QString& error) const;
     bool getUser(const QString& username, UserRecord& outUser) const;
     DDL::Table usersTable() const;

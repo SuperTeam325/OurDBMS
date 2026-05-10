@@ -201,8 +201,22 @@ void DML::validateFieldConstraint(
     validateFieldValue(field, effectiveValue, quoted && effectiveValue == value);
 }
 
-bool DML::hasDuplicateKey(const QVector<QVector<QString>>& rows, int fieldIndex, const QString& value, int excludeRow)
+bool DML::hasDuplicateKey(const QVector<QVector<QString>>& rows, int fieldIndex,
+                           const QString& value, int excludeRow,
+                           BPlusTree* index, const QString& lookupValue)
 {
+    // 有索引：O(log n) 查找
+    if (index) {
+        QString searchVal = lookupValue.isEmpty() ? value : lookupValue;
+        QVector<int> matches = index->search(searchVal);
+        if (excludeRow < 0) return !matches.isEmpty();
+        for (int rid : matches) {
+            if (rid != excludeRow) return true;
+        }
+        return false;
+    }
+
+    // 回退：全表扫描 O(n)
     for (int i = 0; i < rows.size(); i++) {
         if (i == excludeRow) {
             continue;
@@ -214,12 +228,20 @@ bool DML::hasDuplicateKey(const QVector<QVector<QString>>& rows, int fieldIndex,
     return false;
 }
 
-bool DML::validateForeignKey(const DDL::DataBase& db, const DDL::Field& field, const QString& value)
+bool DML::validateForeignKey(const DDL::DataBase& db, const DDL::Field& field,
+                              const QString& value, BPlusTree* index, const QString& lookupValue)
 {
     if (!field.field_Constraint.Foreign_key || isNullLike(value)) {
         return true;
     }
 
+    // 有索引：O(log n) 查找
+    if (index) {
+        QString searchVal = lookupValue.isEmpty() ? value : lookupValue;
+        return !index->search(searchVal).isEmpty();
+    }
+
+    // 回退：全表扫描 O(n)
     const QString refSchemaPath = schemaPathFor(db, field.field_Constraint.ref_table);
     DDL::Table refTable = DDL::loadSchema(refSchemaPath);
     int refFieldIndex = refTable.getFieldIndex(field.field_Constraint.ref_field);
@@ -272,6 +294,12 @@ int DML::executeInsert(const DDL::DataBase& db, const InsertStatement& stmt)
     QVector<QVector<QString>> pendingRows;
     QVector<QVector<QString>> rowsForCheck = rows;
 
+    // 加载索引
+    IndexManager im(db.path, stmt.tableName);
+    if (!table.indexes.isEmpty()) {
+        im.loadAllIndexes(table.indexes, table);
+    }
+
     auto validateStoredValue = [&](int fieldIndex, const QString& value, bool quoted) {
         const DDL::Field& field = table.fields[fieldIndex];
 
@@ -287,22 +315,47 @@ int DML::executeInsert(const DDL::DataBase& db, const InsertStatement& stmt)
                 throw std::invalid_argument(QString("PRIMARY KEY 约束违反：字段 %1 不能为空")
                                                 .arg(field.field_name).toStdString());
             }
-            if (hasDuplicateKey(rowsForCheck, fieldIndex, value)) {
+            BPlusTree* pkIdx = im.getIndex("pk_" + table.name + "_" + field.field_name);
+            if (hasDuplicateKey(rowsForCheck, fieldIndex, value, -1, pkIdx, value)) {
                 throw std::invalid_argument(QString("PRIMARY KEY 约束违反：字段 %1 的值 '%2' 已存在")
                                                 .arg(field.field_name).arg(value).toStdString());
             }
         }
 
         if (field.field_Constraint.Unique_key) {
-            if (!isNullLike(value) && hasDuplicateKey(rowsForCheck, fieldIndex, value)) {
+            BPlusTree* uqIdx = im.getIndex("uq_" + table.name + "_" + field.field_name);
+            if (!isNullLike(value) && hasDuplicateKey(rowsForCheck, fieldIndex, value, -1, uqIdx, value)) {
                 throw std::invalid_argument(QString("UNIQUE 约束违反：字段 %1 的值 '%2' 已存在")
                                                 .arg(field.field_name).arg(value).toStdString());
             }
         }
 
-        if (field.field_Constraint.Foreign_key && !validateForeignKey(db, field, value)) {
-            throw std::invalid_argument(QString("FOREIGN KEY 约束违反：字段 %1 的值 '%2' 在被引用表中不存在")
-                                            .arg(field.field_name).arg(value).toStdString());
+        if (field.field_Constraint.Foreign_key) {
+            BPlusTree* fkIdx = nullptr;
+            IndexManager* refIm = nullptr;
+            if (!field.field_Constraint.ref_table.isEmpty()) {
+                QString refSchemaPath = schemaPathFor(db, field.field_Constraint.ref_table);
+                DDL::Table refTable = DDL::loadSchema(refSchemaPath);
+                if (!refTable.indexes.isEmpty()) {
+                    refIm = new IndexManager(db.path, refTable.name);
+                    refIm->loadAllIndexes(refTable.indexes, refTable);
+                    QString fkIdxName = refIm->findBestIndex(field.field_Constraint.ref_field);
+                    if (!fkIdxName.isEmpty()) {
+                        fkIdx = refIm->getIndex(fkIdxName);
+                    }
+                }
+            }
+            bool fkValid;
+            if (fkIdx) {
+                fkValid = !fkIdx->search(value).isEmpty();
+            } else {
+                fkValid = validateForeignKey(db, field, value);
+            }
+            delete refIm;
+            if (!fkValid) {
+                throw std::invalid_argument(QString("FOREIGN KEY 约束违反：字段 %1 的值 '%2' 在被引用表中不存在")
+                                                .arg(field.field_name).arg(value).toStdString());
+            }
         }
     };
 
@@ -367,6 +420,16 @@ int DML::executeInsert(const DDL::DataBase& db, const InsertStatement& stmt)
     }
 
     saveTableRows(db, table, rows);
+
+    // 同步索引：为新插入的行更新所有已加载索引
+    if (!table.indexes.isEmpty()) {
+        int startRowId = rows.size() - pendingRows.size();
+        for (int i = 0; i < pendingRows.size(); i++) {
+            im.onInsert(pendingRows[i], startRowId + i);
+        }
+        im.closeAll();
+    }
+
     return pendingRows.size();
 }
 
@@ -381,6 +444,12 @@ int DML::executeUpdate(const DDL::DataBase& db, const UpdateStatement& stmt)
 
     DDL::Table table = DDL::loadSchema(schemaPathFor(db, stmt.tableName));
     QVector<QVector<QString>> rows = loadTableRows(db, table);
+
+    // 加载索引
+    IndexManager im(db.path, stmt.tableName);
+    if (!table.indexes.isEmpty()) {
+        im.loadAllIndexes(table.indexes, table);
+    }
 
     int whereIndex = table.getFieldIndex(stmt.whereColumn);
     if (whereIndex < 0) {
@@ -414,17 +483,20 @@ int DML::executeUpdate(const DDL::DataBase& db, const UpdateStatement& stmt)
                                                 .arg(field.field_name).toStdString());
             }
             if (field.field_Constraint.Primary_key) {
-                if (isNullLike(value) || hasDuplicateKey(rows, fieldIndex, value, rowIndex)) {
+                BPlusTree* pkIdx = im.getIndex("pk_" + table.name + "_" + field.field_name);
+                if (isNullLike(value) || hasDuplicateKey(rows, fieldIndex, value, rowIndex, pkIdx, value)) {
                     rows[rowIndex] = originalRow;
                     throw std::invalid_argument(QString("PRIMARY KEY 约束违反：字段 %1 的值 '%2' 不合法")
                                                     .arg(field.field_name).arg(value).toStdString());
                 }
             }
-            if (field.field_Constraint.Unique_key && !isNullLike(value)
-                && hasDuplicateKey(rows, fieldIndex, value, rowIndex)) {
-                rows[rowIndex] = originalRow;
-                throw std::invalid_argument(QString("UNIQUE 约束违反：字段 %1 的值 '%2' 已存在")
-                                                .arg(field.field_name).arg(value).toStdString());
+            if (field.field_Constraint.Unique_key && !isNullLike(value)) {
+                BPlusTree* uqIdx = im.getIndex("uq_" + table.name + "_" + field.field_name);
+                if (hasDuplicateKey(rows, fieldIndex, value, rowIndex, uqIdx, value)) {
+                    rows[rowIndex] = originalRow;
+                    throw std::invalid_argument(QString("UNIQUE 约束违反：字段 %1 的值 '%2' 已存在")
+                                                    .arg(field.field_name).arg(value).toStdString());
+                }
             }
             if (field.field_Constraint.Foreign_key && !validateForeignKey(db, field, value)) {
                 rows[rowIndex] = originalRow;
@@ -434,11 +506,19 @@ int DML::executeUpdate(const DDL::DataBase& db, const UpdateStatement& stmt)
 
             rows[rowIndex][fieldIndex] = value;
         }
+        // 同步索引
+        if (!table.indexes.isEmpty()) {
+            im.onUpdate(originalRow, rows[rowIndex], rowIndex);
+        }
         affected++;
     }
 
     if (affected > 0) {
         saveTableRows(db, table, rows);
+        // 同步索引
+        if (!table.indexes.isEmpty()) {
+            im.closeAll();
+        }
     }
     return affected;
 }
@@ -461,6 +541,12 @@ int DML::executeDelete(const DDL::DataBase& db, const DeleteStatement& stmt)
                                         .arg(stmt.whereColumn).toStdString());
     }
 
+    // 加载索引（用于 WHERE 加速，可选）
+    IndexManager im(db.path, stmt.tableName);
+    if (!table.indexes.isEmpty()) {
+        im.loadAllIndexes(table.indexes, table);
+    }
+
     int before = rows.size();
     for (int i = rows.size() - 1; i >= 0; i--) {
         if (rows[i].size() > whereIndex && rows[i][whereIndex] == stmt.whereValue) {
@@ -471,6 +557,14 @@ int DML::executeDelete(const DDL::DataBase& db, const DeleteStatement& stmt)
     int deleted = before - rows.size();
     if (deleted > 0) {
         saveTableRows(db, table, rows);
+        // 重建所有索引（因为 rowId 在删除后会位移）
+        if (!table.indexes.isEmpty()) {
+            for (const IndexMeta& meta : table.indexes) {
+                im.dropIndex(meta.name);
+                im.createIndex(table, meta, rows);
+            }
+            im.closeAll();
+        }
     }
     return deleted;
 }

@@ -1,4 +1,4 @@
-#include "Log.h""
+#include "Log.h"
 #include "DCL/dcl_facade.h"
 #include <QDir>
 

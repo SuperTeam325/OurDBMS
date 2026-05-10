@@ -59,6 +59,7 @@ QString Parser::getDbPathByName(const QString& dbName)
     QFile file("db_config.json");
 
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+         qDebug()<<"数据库配置文件打开失败"<<file.fileName();
         return "";
     }
 
@@ -69,6 +70,7 @@ QString Parser::getDbPathByName(const QString& dbName)
     // 转成 JSON
     QJsonDocument doc = QJsonDocument::fromJson(data);
     if (doc.isNull() || !doc.isObject()) {
+         qDebug()<<"数据库配置文件错误"<<file.fileName();
         return "";
     }
 
@@ -77,6 +79,8 @@ QString Parser::getDbPathByName(const QString& dbName)
     // 根据数据库名拿路径
     if (obj.contains(dbName)) {
         return obj[dbName].toString();
+    }else{
+        qDebug()<<"数据库配置文件错误"<<file.fileName();
     }
 
     return "";
@@ -436,6 +440,26 @@ DDL::Table Parser::parseCreateTable(const QString& sql,DDL::DataBase& db){
             match(TOKEN_COMMA);
         }
 
+    }
+
+    // 自动为主键和唯一字段创建索引元数据
+    for (const auto& field : table.fields) {
+        if (field.field_Constraint.Primary_key) {
+            IndexMeta pkIdx;
+            pkIdx.name = "pk_" + table.name + "_" + field.field_name;
+            pkIdx.columns = { field.field_name };
+            pkIdx.type = IndexType::BTREE;
+            pkIdx.unique = true;
+            table.indexes.append(pkIdx);
+        }
+        if (field.field_Constraint.Unique_key && !field.field_Constraint.Primary_key) {
+            IndexMeta uqIdx;
+            uqIdx.name = "uq_" + table.name + "_" + field.field_name;
+            uqIdx.columns = { field.field_name };
+            uqIdx.type = IndexType::BTREE;
+            uqIdx.unique = true;
+            table.indexes.append(uqIdx);
+        }
     }
 
     return table;
@@ -1514,4 +1538,146 @@ DeleteStatement Parser::parseDelete(const QString& sql)
     stmt.whereValue = value.value;
     if (peek().type == TOKEN_SEMICOLON) next();
     return stmt;
+}
+
+// =============================================
+// 索引解析
+// =============================================
+
+IndexMeta Parser::parseCreateIndex(const QString& sql, const DDL::DataBase& db)
+{
+    tokens.clear();
+    pos = 0;
+    tokens = le.ReadSQL(sql);
+
+    match(TOKEN_CREATE);
+
+    bool unique = false;
+    if (peek().type == TOKEN_UNIQUE) {
+        unique = true;
+        next();
+    }
+
+    match(TOKEN_INDEX);
+
+    if (peek().type != TOKEN_IDENTIFIER) {
+        throw std::invalid_argument("语法错误：缺少索引名");
+    }
+    QString indexName = peek().text;
+    next();
+
+    match(TOKEN_ON);
+
+    if (peek().type != TOKEN_IDENTIFIER) {
+        throw std::invalid_argument("语法错误：缺少表名");
+    }
+    QString tableName = peek().text;
+    next();
+
+    // 校验表存在
+    QString dbsPath = db.path + "/" + db.name + ".dbs";
+    if (!isTableExists(dbsPath, tableName)) {
+        throw std::invalid_argument(QString("表 %1 不存在").arg(tableName).toStdString());
+    }
+
+    // 加载表结构以校验列
+    QString schemaPath = db.path + "/" + tableName + "/" + tableName + ".tbs";
+    DDL::Table table = DDL::loadSchema(schemaPath);
+
+    match(TOKEN_LPAREN);
+
+    QList<QString> columns;
+    while (peek().type != TOKEN_RPAREN && peek().type != TOKEN_EOF) {
+        if (peek().type == TOKEN_IDENTIFIER) {
+            columns.append(peek().text);
+            next();
+        } else {
+            throw std::invalid_argument(QString("语法错误：期望列名 near %1").arg(peek().text).toStdString());
+        }
+        if (peek().type == TOKEN_COMMA) next();
+    }
+    match(TOKEN_RPAREN);
+    if (peek().type == TOKEN_SEMICOLON) next();
+
+    if (columns.isEmpty()) {
+        throw std::invalid_argument("语法错误：索引至少需要一列");
+    }
+
+    // 校验列存在
+    for (const QString& col : columns) {
+        if (!table.hasField(col)) {
+            throw std::invalid_argument(QString("列 %1 在表 %2 中不存在").arg(col).arg(tableName).toStdString());
+        }
+    }
+
+    // 校验索引名不重复
+    for (const auto& existing : table.indexes) {
+        if (existing.name == indexName) {
+            throw std::invalid_argument(QString("索引 %1 已存在").arg(indexName).toStdString());
+        }
+    }
+
+    IndexMeta meta;
+    meta.name = indexName;
+    meta.columns = columns;
+    meta.type = IndexType::BTREE;
+    meta.unique = unique;
+
+    return meta;
+}
+
+void Parser::parseDropIndex(const QString& sql, DDL::DataBase& db)
+{
+    tokens.clear();
+    pos = 0;
+    tokens = le.ReadSQL(sql);
+
+    match(TOKEN_DROP);
+    match(TOKEN_INDEX);
+
+    if (peek().type != TOKEN_IDENTIFIER) {
+        throw std::invalid_argument("语法错误：缺少索引名");
+    }
+    QString indexName = peek().text;
+    next();
+
+    match(TOKEN_ON);
+
+    if (peek().type != TOKEN_IDENTIFIER) {
+        throw std::invalid_argument("语法错误：缺少表名");
+    }
+    QString tableName = peek().text;
+    next();
+
+    if (peek().type == TOKEN_SEMICOLON) next();
+
+    // 校验表存在
+    QString dbsPath = db.path + "/" + db.name + ".dbs";
+    if (!isTableExists(dbsPath, tableName)) {
+        throw std::invalid_argument(QString("表 %1 不存在").arg(tableName).toStdString());
+    }
+
+    // 加载表结构
+    QString schemaPath = db.path + "/" + tableName + "/" + tableName + ".tbs";
+    DDL::Table table = DDL::loadSchema(schemaPath);
+
+    // 查找并移除索引元数据
+    bool found = false;
+    for (int i = 0; i < table.indexes.size(); i++) {
+        if (table.indexes[i].name == indexName) {
+            // 删除索引文件
+            QString idxPath = db.path + "/" + tableName + "/" + tableName + "_" + indexName + ".idx";
+            QFile::remove(idxPath);
+            table.indexes.removeAt(i);
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        throw std::invalid_argument(QString("索引 %1 不存在").arg(indexName).toStdString());
+    }
+
+    // 保存更新后的表结构
+    DDL::saveSchema(table, db.path);
 }

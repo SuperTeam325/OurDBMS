@@ -22,6 +22,10 @@ public:
     void paraseDropTable(const QString &sql,DDL::DataBase& db);//删除表
     void paraseDropDatabase(const QString &sql);//删除数据库
 
+    // 索引解析
+    IndexMeta parseCreateIndex(const QString& sql, const DDL::DataBase& db);
+    void parseDropIndex(const QString& sql, DDL::DataBase& db);
+
     // DML 解析方法
     InsertStatement parseInsert(const QString& sql);   // 解析 INSERT
     UpdateStatement parseUpdate(const QString& sql);   // 解析 UPDATE

@@ -57,6 +57,11 @@ enum TokenType {
     TOKEN_EQUAL,     // =
 
     TOKEN_NUMBER,
+
+    // 索引
+    TOKEN_INDEX,
+    TOKEN_ON,
+
     TOKEN_EOF
 };
 

@@ -112,6 +112,19 @@ void DDL::saveSchema(DDL::Table& table,QString& path){
             }
 
         }
+
+    // --- 写入索引元数据（新增）---
+    out << static_cast<int>(table.indexes.size());
+    for (const auto& idx : table.indexes) {
+        out << idx.name;
+        out << static_cast<int>(idx.type);
+        out << idx.unique;
+        out << static_cast<int>(idx.columns.size());
+        for (const auto& col : idx.columns) {
+            out << col;
+        }
+    }
+
     file.close();
 }
 
@@ -184,6 +197,29 @@ DDL::Table DDL::loadSchema(const QString& path)
 
         }
       //  db.tables[table.name]=table;
+
+    // --- 读取索引元数据（兼容旧格式：用文件字节位置判断）---
+    if (file.pos() < file.size()) {
+        int indexCount;
+        in >> indexCount;
+        for (int i = 0; i < indexCount; i++) {
+            IndexMeta idx;
+            int typeInt;
+            in >> idx.name;
+            in >> typeInt;
+            idx.type = static_cast<IndexType>(typeInt);
+            in >> idx.unique;
+            int colCount;
+            in >> colCount;
+            for (int j = 0; j < colCount; j++) {
+                QString col;
+                in >> col;
+                idx.columns.append(col);
+            }
+            table.indexes.append(idx);
+        }
+    }
+
     file.close();
     return table;
 }
@@ -223,7 +259,7 @@ QStringList DDL::readFromDbs(QString& path){
 // ==============================================
 // 保存表数据 → 表名.tbf
 // ==============================================
-void DDL::saveTableData(const DDL::Table &table, const QVector<QVector<QString>> &rows, const QString& dbPath)
+bool DDL::saveTableData(const DDL::Table &table, const QVector<QVector<QString>> &rows, const QString& dbPath)
 {
     QString fileName;
     if (dbPath.isEmpty()) {
@@ -238,7 +274,10 @@ void DDL::saveTableData(const DDL::Table &table, const QVector<QVector<QString>>
     }
 
     QFile file(fileName);
-    if (!file.open(QIODevice::WriteOnly)) return;
+    if (!file.open(QIODevice::WriteOnly)) {
+        qDebug() << "saveTableData: 无法打开文件" << fileName;
+        return false;
+    }
 
     QDataStream out(&file);
     out << (int)rows.size();
@@ -250,7 +289,9 @@ void DDL::saveTableData(const DDL::Table &table, const QVector<QVector<QString>>
     }
 
     file.close();
+    return true;
 }
+
 
 // 加载表数据 ← 表名.tbf
 QVector<QVector<QString>> DDL::loadTableData(const DDL::Table &table, const QString& dbPath)

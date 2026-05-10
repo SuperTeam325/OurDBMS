@@ -56,7 +56,8 @@ bool UserRepository::userExists(const QString& username) const
 
 bool UserRepository::createUser(const QString& username, const QString& plainPassword, bool isAdmin, QString& error)
 {
-    if (username.trimmed().isEmpty()) {
+    const QString normUsername = username.trimmed().toLower();
+    if (normUsername.isEmpty()) {
         error = "用户名不能为空";
         return false;
     }
@@ -72,7 +73,7 @@ bool UserRepository::createUser(const QString& username, const QString& plainPas
 
     QVector<QVector<QString>> users = DDL::loadTableData(usersTable(), sysDbPath());
     for (const auto& row : users) {
-        if (row.size() >= 4 && row[0] == username) {
+        if (row.size() >= 4 && row[0].toLower() == normUsername) {
             error = "用户已存在";
             return false;
         }
@@ -80,16 +81,19 @@ bool UserRepository::createUser(const QString& username, const QString& plainPas
 
     const QString salt = generateSalt();
     const QString hash = hashPassword(plainPassword, salt);
-    users.append({username, salt, hash, isAdmin ? "1" : "0"});
-    DDL::saveTableData(usersTable(), users, sysDbPath());
+    users.append({normUsername, salt, hash, isAdmin ? "1" : "0"});
+    if (!DDL::saveTableData(usersTable(), users, sysDbPath())) {
+        error = "无法保存用户数据到磁盘";
+        return false;
+    }
 
     return true;
 }
 
 bool UserRepository::deleteUser(const QString& username, QString& error)
 {
-    const QString normalizedUsername = username.trimmed();
-    if (normalizedUsername.isEmpty()) {
+    const QString normUsername = username.trimmed().toLower();
+    if (normUsername.isEmpty()) {
         error = "用户名不能为空";
         return false;
     }
@@ -102,7 +106,7 @@ bool UserRepository::deleteUser(const QString& username, QString& error)
     QVector<QVector<QString>> filtered;
     bool removed = false;
     for (const auto& row : users) {
-        if (row.size() >= 4 && row[0] == normalizedUsername) {
+        if (row.size() >= 4 && row[0].toLower() == normUsername) {
             removed = true;
             continue;
         }
@@ -114,7 +118,40 @@ bool UserRepository::deleteUser(const QString& username, QString& error)
         return false;
     }
 
-    DDL::saveTableData(usersTable(), filtered, sysDbPath());
+    if (!DDL::saveTableData(usersTable(), filtered, sysDbPath())) {
+        error = "无法保存用户数据到磁盘";
+        return false;
+    }
+    return true;
+}
+
+bool UserRepository::setUserAdmin(const QString& username, bool isAdmin, QString& error)
+{
+    const QString normUsername = username.trimmed().toLower();
+    if (normUsername.isEmpty()) {
+        error = "用户名不能为空";
+        return false;
+    }
+
+    QVector<QVector<QString>> users = DDL::loadTableData(usersTable(), sysDbPath());
+    bool found = false;
+    for (auto& row : users) {
+        if (row.size() >= 4 && row[0].toLower() == normUsername) {
+            row[3] = isAdmin ? "1" : "0";
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        error = "用户不存在";
+        return false;
+    }
+
+    if (!DDL::saveTableData(usersTable(), users, sysDbPath())) {
+        error = "无法保存用户数据到磁盘";
+        return false;
+    }
     return true;
 }
 
@@ -136,10 +173,11 @@ bool UserRepository::validateUser(const QString& username, const QString& plainP
 
 bool UserRepository::getUser(const QString& username, UserRecord& outUser) const
 {
+    const QString normUsername = username.trimmed().toLower();
     const QVector<QVector<QString>> users = DDL::loadTableData(usersTable(), sysDbPath());
     for (const auto& row : users) {
-        if (row.size() >= 4 && row[0] == username) {
-            outUser.username = username;
+        if (row.size() >= 4 && row[0].toLower() == normUsername) {
+            outUser.username = row[0];
             outUser.salt = row[1];
             outUser.passwordHash = row[2];
             outUser.isAdmin = (row[3] == "1");

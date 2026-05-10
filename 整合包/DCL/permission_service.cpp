@@ -27,13 +27,6 @@ bool PermissionService::ensureStorage(QString& error) const
         dbsFile.close();
     }
 
-    //日志文件夹
-    QString logPath = dbsPath + "/logs";
-    QDir dir2(logPath);
-    if (!dir2.exists()) {
-        dir2.mkpath(logPath);
-    }
-
     QString dbsPathRef = dbsPath;
     const QStringList tableNames = DDL::readFromDbs(dbsPathRef);
     if (!tableNames.contains("permissions")) {
@@ -69,15 +62,20 @@ bool PermissionService::checkPermission(const SessionContext& session,
         return true;
     }
 
+    if (hasAllPrivileges(session.username)) {
+        return true;
+    }
+
+    if (action == TableAction::Select) {
+        return true;
+    }
+
     if (action == TableAction::Unknown) {
-        return true;
+        error = "不支持的 SQL 操作";
+        return false;
     }
 
-    if (action == TableAction::Select && !databaseName.isEmpty() && databaseName == session.currentDatabase) {
-        return true;
-    }
-
-    if (hasExplicitPermission(session.username, action, databaseName, tableName)) {
+    if (hasHierarchicalPermission(session.username, action, databaseName, tableName)) {
         return true;
     }
 
@@ -102,16 +100,27 @@ bool PermissionService::grantPermission(const SessionContext& session,
         return false;
     }
 
-    QVector<QVector<QString>> permissions = loadPermissions();
+    const QString normUsername = normalizeIdentifier(username);
+    const QString normDatabase = normalizeIdentifier(databaseName);
+    const QString normTable = normalizeIdentifier(tableName);
     const QString actionText = actionToString(action);
+
+    QVector<QVector<QString>> permissions = loadPermissions();
     for (const auto& row : permissions) {
-        if (row.size() >= 4 && row[0] == username && row[1] == databaseName && row[2] == tableName && row[3] == actionText) {
+        if (row.size() >= 4
+            && normalizeIdentifier(row[0]) == normUsername
+            && normalizeIdentifier(row[1]) == normDatabase
+            && normalizeIdentifier(row[2]) == normTable
+            && row[3] == actionText) {
             return true;
         }
     }
 
-    permissions.append({username, databaseName, tableName, actionText});
-    savePermissions(permissions);
+    permissions.append({normUsername, normDatabase, normTable, actionText});
+    if (!savePermissions(permissions)) {
+        error = "授权失败：无法写入权限文件";
+        return false;
+    }
     return true;
 }
 
@@ -132,12 +141,20 @@ bool PermissionService::revokePermission(const SessionContext& session,
         return false;
     }
 
-    QVector<QVector<QString>> permissions = loadPermissions();
+    const QString normUsername = normalizeIdentifier(username);
+    const QString normDatabase = normalizeIdentifier(databaseName);
+    const QString normTable = normalizeIdentifier(tableName);
     const QString actionText = actionToString(action);
+
+    QVector<QVector<QString>> permissions = loadPermissions();
     QVector<QVector<QString>> filtered;
     bool removed = false;
     for (const auto& row : permissions) {
-        if (row.size() >= 4 && row[0] == username && row[1] == databaseName && row[2] == tableName && row[3] == actionText) {
+        if (row.size() >= 4
+            && normalizeIdentifier(row[0]) == normUsername
+            && normalizeIdentifier(row[1]) == normDatabase
+            && normalizeIdentifier(row[2]) == normTable
+            && row[3] == actionText) {
             removed = true;
             continue;
         }
@@ -148,14 +165,17 @@ bool PermissionService::revokePermission(const SessionContext& session,
         return true;
     }
 
-    savePermissions(filtered);
+    if (!savePermissions(filtered)) {
+        error = "撤权失败：无法写入权限文件";
+        return false;
+    }
     return true;
 }
 
 bool PermissionService::removePermissionsForUser(const QString& username, QString& error)
 {
-    const QString normalizedUsername = username.trimmed();
-    if (normalizedUsername.isEmpty()) {
+    const QString normUsername = normalizeIdentifier(username);
+    if (normUsername.isEmpty()) {
         error = "用户名不能为空";
         return false;
     }
@@ -163,13 +183,40 @@ bool PermissionService::removePermissionsForUser(const QString& username, QStrin
     QVector<QVector<QString>> permissions = loadPermissions();
     QVector<QVector<QString>> filtered;
     for (const auto& row : permissions) {
-        if (row.size() >= 4 && row[0] == normalizedUsername) {
+        if (row.size() >= 4 && normalizeIdentifier(row[0]) == normUsername) {
             continue;
         }
         filtered.append(row);
     }
 
-    savePermissions(filtered);
+    if (!savePermissions(filtered)) {
+        error = "删除用户权限失败：无法写入权限文件";
+        return false;
+    }
+    return true;
+}
+
+bool PermissionService::migrateActionNames(QString& error)
+{
+    QVector<QVector<QString>> permissions = loadPermissions();
+    bool changed = false;
+    for (auto& row : permissions) {
+        if (row.size() >= 4) {
+            if (row[3] == "CREATE") {
+                row[3] = "CREATE TABLE";
+                changed = true;
+            } else if (row[3] == "DROP") {
+                row[3] = "DROP TABLE";
+                changed = true;
+            }
+        }
+    }
+    if (changed) {
+        if (!savePermissions(permissions)) {
+            error = "权限迁移失败：无法写入权限文件";
+            return false;
+        }
+    }
     return true;
 }
 
@@ -185,7 +232,7 @@ DDL::Table PermissionService::permissionsTable() const
     table.fields.append(DDL::Field("username", DDL::FieldType::VARCHAR, 64));
     table.fields.append(DDL::Field("database_name", DDL::FieldType::VARCHAR, 64));
     table.fields.append(DDL::Field("table_name", DDL::FieldType::VARCHAR, 64));
-    table.fields.append(DDL::Field("action", DDL::FieldType::VARCHAR, 16));
+    table.fields.append(DDL::Field("action", DDL::FieldType::VARCHAR, 32));
     return table;
 }
 
@@ -196,16 +243,66 @@ bool PermissionService::hasExplicitPermission(const QString& username,
 {
     const QVector<QVector<QString>> permissions = loadPermissions();
     const QString actionText = actionToString(action);
+    const QString normUsername = normalizeIdentifier(username);
+    const QString normDatabase = normalizeIdentifier(databaseName);
+    const QString normTable = normalizeIdentifier(tableName);
     for (const auto& row : permissions) {
         if (row.size() < 4) {
             continue;
         }
 
-        if (row[0] == username && row[1] == databaseName && row[2] == tableName && row[3] == actionText) {
+        if (normalizeIdentifier(row[0]) == normUsername
+            && normalizeIdentifier(row[1]) == normDatabase
+            && normalizeIdentifier(row[2]) == normTable
+            && row[3] == actionText) {
             return true;
         }
     }
 
+    return false;
+}
+
+bool PermissionService::hasAllPrivileges(const QString& username) const
+{
+    const QVector<QVector<QString>> permissions = loadPermissions();
+    const QString normUsername = normalizeIdentifier(username);
+    for (const auto& row : permissions) {
+        if (row.size() >= 4 &&
+            normalizeIdentifier(row[0]) == normUsername &&
+            row[1] == "*" &&
+            row[2] == "*" &&
+            row[3] == "ALL PRIVILEGES") {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool PermissionService::hasHierarchicalPermission(const QString& username,
+                                                  TableAction action,
+                                                  const QString& databaseName,
+                                                  const QString& tableName) const
+{
+    const QVector<QVector<QString>> permissions = loadPermissions();
+    const QString actionText = actionToString(action);
+    const QString normUsername = normalizeIdentifier(username);
+    const QString normDatabase = normalizeIdentifier(databaseName);
+    const QString normTable = normalizeIdentifier(tableName);
+
+    for (const auto& row : permissions) {
+        if (row.size() < 4) continue;
+        if (normalizeIdentifier(row[0]) != normUsername) continue;
+        if (row[3] != actionText && row[3] != "ALL PRIVILEGES") continue;
+
+        if (row[1] == "*" && row[2] == "*") return true;
+
+        if (row[2] == "*" && (normDatabase.isEmpty() || normalizeIdentifier(row[1]) == normDatabase))
+            return true;
+
+        if (!normDatabase.isEmpty() && !normTable.isEmpty() &&
+            normalizeIdentifier(row[1]) == normDatabase && normalizeIdentifier(row[2]) == normTable)
+            return true;
+    }
     return false;
 }
 
@@ -214,23 +311,35 @@ QVector<QVector<QString>> PermissionService::loadPermissions() const
     return DDL::loadTableData(permissionsTable(), sysDbPath());
 }
 
-void PermissionService::savePermissions(const QVector<QVector<QString>>& permissions) const
+bool PermissionService::savePermissions(const QVector<QVector<QString>>& permissions) const
 {
-    DDL::saveTableData(permissionsTable(), permissions, sysDbPath());
+    return DDL::saveTableData(permissionsTable(), permissions, sysDbPath());
 }
 
 QString PermissionService::actionToString(TableAction action) const
 {
     switch (action) {
-    case TableAction::Select: return "SELECT";
-    case TableAction::Insert: return "INSERT";
-    case TableAction::Update: return "UPDATE";
-    case TableAction::Delete: return "DELETE";
-    case TableAction::Create: return "CREATE";
-    case TableAction::Alter: return "ALTER";
-    case TableAction::Drop: return "DROP";
+    case TableAction::Select:          return "SELECT";
+    case TableAction::Insert:          return "INSERT";
+    case TableAction::Update:          return "UPDATE";
+    case TableAction::Delete:          return "DELETE";
+    case TableAction::CreateDatabase:  return "CREATE DATABASE";
+    case TableAction::DropDatabase:    return "DROP DATABASE";
+    case TableAction::CreateTable:     return "CREATE TABLE";
+    case TableAction::DropTable:       return "DROP TABLE";
+    case TableAction::Alter:           return "ALTER";
+    case TableAction::CreateUser:      return "CREATE USER";
+    case TableAction::DropUser:        return "DROP USER";
+    case TableAction::GrantPrivilege:  return "GRANT";
+    case TableAction::RevokePrivilege: return "REVOKE";
+    case TableAction::AllPrivileges:   return "ALL PRIVILEGES";
     default: return "UNKNOWN";
     }
+}
+
+QString PermissionService::normalizeIdentifier(const QString& s)
+{
+    return s.trimmed().toLower();
 }
 
 } // namespace DCL

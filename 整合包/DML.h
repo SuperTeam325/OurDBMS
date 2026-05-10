@@ -2,6 +2,7 @@
 #define DML_H
 
 #include "DDL.h"
+#include "Index.h"
 #include <QString>
 #include <QVector>
 #include <QMap>
@@ -71,14 +72,20 @@ private:
     // 类型校验：检查值是否符合字段类型（支持区分是否带引号）
     static void validateFieldValue(const DDL::Field& field, const QString& value, bool quoted);
 
-    // 检查主键/唯一约束冲突（支持排除指定行）
-    static bool hasDuplicateKey(const QVector<QVector<QString>>& rows, int fieldIndex, const QString& value, int excludeRow = -1);
+    // 检查主键/唯一约束冲突（支持排除指定行，可选索引加速）
+    static bool hasDuplicateKey(const QVector<QVector<QString>>& rows,
+                                int fieldIndex, const QString& value,
+                                int excludeRow = -1,
+                                BPlusTree* index = nullptr,
+                                const QString& lookupValue = QString());
 
     // 获取自增字段的下一个值
     static int getNextAutoIncrement(const QVector<QVector<QString>>& rows, int fieldIndex);
 
-    // 外键约束校验：检查外键字段的值是否在被引用表中存在
-    static bool validateForeignKey(const DDL::DataBase& db, const DDL::Field& field, const QString& value);
+    // 外键约束校验：检查外键字段的值是否在被引用表中存在（可选索引加速）
+    static bool validateForeignKey(const DDL::DataBase& db, const DDL::Field& field,
+                                   const QString& value, BPlusTree* index = nullptr,
+                                   const QString& lookupValue = QString());
 
     // 处理字段值：应用默认值（如果需要）
     static QString applyDefault(const DDL::Field& field, const QString& value);

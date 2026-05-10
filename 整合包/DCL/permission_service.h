@@ -34,6 +34,7 @@ public:
                           QString& error);
 
     bool removePermissionsForUser(const QString& username, QString& error);
+    bool migrateActionNames(QString& error);
 
     DDL::Table permissionsTable() const;
 
@@ -45,10 +46,16 @@ private:
                                TableAction action,
                                const QString& databaseName,
                                const QString& tableName) const;
+    bool hasAllPrivileges(const QString& username) const;
+    bool hasHierarchicalPermission(const QString& username,
+                                   TableAction action,
+                                   const QString& databaseName,
+                                   const QString& tableName) const;
 
     QVector<QVector<QString>> loadPermissions() const;
-    void savePermissions(const QVector<QVector<QString>>& permissions) const;
+    bool savePermissions(const QVector<QVector<QString>>& permissions) const;
     QString actionToString(TableAction action) const;
+    static QString normalizeIdentifier(const QString& s);
 
     QString m_rootPath;
 };

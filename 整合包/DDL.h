@@ -8,7 +8,34 @@
 #include <QVector>
 #include <QMap>
 #include <QObject>
+#include <QList>
 #include "Lexer.h"
+
+// =============================================
+// 索引类型枚举
+// =============================================
+enum class IndexType {
+    BTREE,    // B+树（默认）
+    HASH      // 哈希索引（预留，暂不实现）
+};
+
+// =============================================
+// 索引元数据（存储在 DDL::Table 中）
+// =============================================
+struct IndexMeta {
+    QString name;              // 索引名称
+    QList<QString> columns;    // 索引列（支持复合索引）
+    IndexType type;            // 索引类型
+    bool unique;               // 是否唯一索引
+
+    IndexMeta()
+        : type(IndexType::BTREE), unique(false) {}
+
+    QString fileName(const QString& tableName) const {
+        return tableName + "_" + name + ".idx";
+    }
+};
+
 class DDL{
 public:
     enum class FieldType{
@@ -127,6 +154,9 @@ struct Table{
         return false;
     }
 
+    // 索引元数据列表
+    QList<IndexMeta> indexes;
+
     //获取字段索引
     int getFieldIndex(const QString& Fname) const{
         for(size_t i=0;i<fields.size();i++){
@@ -178,7 +208,7 @@ static QStringList readFromDbs(QString &);
 static Table loadSchema(const QString& path);
 
 // 保存表数据到 表名.tbf（dbPath 非空时写入 dbPath/表名/表名.tbf）
-static void saveTableData(const Table &table, const QVector<QVector<QString>> &rows, const QString& dbPath = "");
+static bool saveTableData(const Table &table, const QVector<QVector<QString>> &rows, const QString& dbPath = "");
 
 // 加载表数据从 表名.tbf（dbPath 非空时读取 dbPath/表名/表名.tbf）
 static QVector<QVector<QString>> loadTableData(const Table &table, const QString& dbPath = "");

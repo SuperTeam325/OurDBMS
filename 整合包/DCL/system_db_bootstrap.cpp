@@ -39,6 +39,10 @@ bool SystemDbBootstrap::ensureInitialized(QString& error)
         return false;
     }
 
+    if (!permissions.migrateActionNames(error)) {
+        return false;
+    }
+
     if (!users.userExists("admin")) {
         if (!users.createUser("admin", "123456", true, error)) {
             return false;
